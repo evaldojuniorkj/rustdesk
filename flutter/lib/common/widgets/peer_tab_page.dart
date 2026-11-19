@@ -593,7 +593,8 @@ class _PeerTabPageState extends State<PeerTabPage>
       ),
       _createPeerViewTypeSwitch(context),
       Offstage(
-        offstage: model.currentTab == PeerTabIndex.recent.index,
+        offstage: model.currentTab == PeerTabIndex.recent.index ||
+            model.currentTab == PeerTabIndex.carteira.index,
         child: PeerSortDropdown(),
       ),
       Offstage(

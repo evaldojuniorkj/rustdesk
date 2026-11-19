@@ -835,6 +835,5 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("Group name", "Nome do grupo"),
         ("New group", "Novo grupo"),
         ("Ungrouped", "Sem grupo"),
-        ("Rename group", "Renomear grupo"),
     ].iter().cloned().collect();
 }

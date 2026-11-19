@@ -13,6 +13,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_hbb/common/widgets/peers_view.dart';
 import 'package:flutter_hbb/consts.dart';
 import 'package:flutter_hbb/models/ab_model.dart';
+import 'package:flutter_hbb/models/carteira_model.dart';
 import 'package:flutter_hbb/models/chat_model.dart';
 import 'package:flutter_hbb/models/cm_file_model.dart';
 import 'package:flutter_hbb/models/file_model.dart';
@@ -4059,6 +4060,7 @@ class FFI {
   late final Peers recentPeersModel; // global
   late final Peers favoritePeersModel; // global
   late final Peers lanPeersModel; // global
+  late final CarteiraModel carteiraModel; // global
 
   // Terminal model registry for multiple terminals
   final Map<int, TerminalModel> _terminalModels = {};
@@ -4096,6 +4098,7 @@ class FFI {
         getInitPeers: null);
     lanPeersModel = Peers(
         name: PeersModelName.lan, loadEvent: LoadEvent.lan, getInitPeers: null);
+    carteiraModel = CarteiraModel(WeakReference(this));
   }
 
   /// Mobile reuse FFI

@@ -931,6 +931,9 @@ abstract class BasePeerCard extends StatelessWidget {
               break;
             case PeerTabIndex.group:
               break;
+            case PeerTabIndex.carteira:
+              gFFI.carteiraModel.removePeer(id);
+              break;
           }
           if (tab != PeerTabIndex.ab) {
             showToast(translate('Successful'));
@@ -1056,6 +1059,30 @@ abstract class BasePeerCard extends StatelessWidget {
   }
 
   @protected
+  MenuEntryBase<String> _addToCarteira(Peer peer) {
+    return MenuEntryButton<String>(
+      childBuilder: (TextStyle? style) => Text(
+        translate(gFFI.carteiraModel.contains(peer.id)
+            ? 'Move to group'
+            : 'Add to wallet'),
+        style: style,
+      ),
+      proc: () {
+        () async {
+          if (gFFI.carteiraModel.contains(peer.id)) {
+            showCarteiraGroupDialog(peer);
+          } else {
+            gFFI.carteiraModel.addPeer(peer.id, peer.alias, '');
+            showToast(translate('Successful'));
+          }
+        }();
+      },
+      padding: menuPadding,
+      dismissOnClicked: true,
+    );
+  }
+
+  @protected
   Future<String> _getAlias(String id) async =>
       await bind.mainGetPeerOption(id: id, key: 'alias');
 
@@ -1093,6 +1120,7 @@ class RecentPeerCard extends BasePeerCard {
     } else {
       menuItems.add(_rmFavAction(peer.id, () async {}));
     }
+    menuItems.add(_addToCarteira(peer));
 
     if (gFFI.userModel.userName.isNotEmpty) {
       menuItems.add(_addToAb(peer));
@@ -1133,6 +1161,7 @@ class FavoritePeerCard extends BasePeerCard {
     menuItems.add(_rmFavAction(peer.id, () async {
       await bind.mainLoadFavPeers();
     }));
+    menuItems.add(_addToCarteira(peer));
 
     if (gFFI.userModel.userName.isNotEmpty) {
       menuItems.add(_addToAb(peer));
@@ -1173,6 +1202,7 @@ class DiscoveredPeerCard extends BasePeerCard {
     } else {
       menuItems.add(_rmFavAction(peer.id, () async {}));
     }
+    menuItems.add(_addToCarteira(peer));
 
     if (gFFI.userModel.userName.isNotEmpty) {
       menuItems.add(_addToAb(peer));
@@ -1606,4 +1636,77 @@ void connectInPeerTab(BuildContext context, Peer peer, PeerTabIndex tab,
       isViewCamera: isViewCamera,
       isTcpTunneling: isTcpTunneling,
       isRDP: isRDP);
+}
+
+/// Dialog to assign [peer] to a Carteira group (or create a new one).
+void showCarteiraGroupDialog(Peer peer) {
+  final model = gFFI.carteiraModel;
+  final rxSelected = model.groupOf(peer.id).obs;
+  final newGroup = TextEditingController();
+  gFFI.dialogManager.show((setState, close, context) {
+    submit() {
+      var group = rxSelected.value;
+      final typed = newGroup.text.trim();
+      if (typed.isNotEmpty) group = typed;
+      if (group != model.groupOf(peer.id)) {
+        model.moveToGroup(peer.id, group);
+      }
+      close();
+    }
+
+    return CustomAlertDialog(
+      title: Text(translate('Move to group')),
+      content: Obx(() => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final g in ['', ...model.groups])
+                RadioListTile<String>(
+                  dense: true,
+                  title: Text(g.isEmpty ? translate('Ungrouped') : g),
+                  value: g,
+                  groupValue: rxSelected.value,
+                  onChanged: (v) => rxSelected.value = v ?? '',
+                ),
+              TextField(
+                controller: newGroup,
+                decoration:
+                    InputDecoration(labelText: translate('New group')),
+              ),
+            ],
+          )),
+      actions: [
+        dialogButton('Cancel', onPressed: close, isOutline: true),
+        dialogButton('OK', onPressed: submit),
+      ],
+      onSubmit: submit,
+      onCancel: close,
+    );
+  });
+}
+
+class CarteiraPeerCard extends BasePeerCard {
+  CarteiraPeerCard({required Peer peer, EdgeInsets? menuPadding, Key? key})
+      : super(
+            peer: peer,
+            tab: PeerTabIndex.carteira,
+            menuPadding: menuPadding,
+            key: key);
+
+  @override
+  Future<List<MenuEntryBase<String>>> _buildMenuItems(
+      BuildContext context) async {
+    final menuItems = await _buildConnectionMenuItems(context);
+    menuItems.add(MenuEntryDivider());
+    if (await bind.mainPeerHasPassword(id: peer.id)) {
+      menuItems.add(_unrememberPasswordAction(peer.id));
+    }
+    menuItems.add(_addToCarteira(peer));
+    menuItems.add(MenuEntryDivider());
+    menuItems.add(_removeAction(peer.id));
+    return menuItems;
+  }
+
+  @protected
+  @override
+  void _update() {}
 }

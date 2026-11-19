@@ -41,6 +41,7 @@ class LoadEvent {
   static const String lan = 'load_lan_peers';
   static const String addressBook = 'load_address_book_peers';
   static const String group = 'load_group_peers';
+  static const String carteira = 'load_carteira_peers';
 }
 
 class PeersModelName {
@@ -49,6 +50,7 @@ class PeersModelName {
   static const String lan = 'discovered peer';
   static const String addressBook = 'address book peer';
   static const String group = 'group peer';
+  static const String carteira = 'carteira peer';
 }
 
 /// for peer search text, global obs value
@@ -440,6 +442,9 @@ abstract class BasePeersView extends StatelessWidget {
         break;
       case PeerTabIndex.group:
         peers = gFFI.groupModel.peersModel;
+        break;
+      case PeerTabIndex.carteira:
+        peers = gFFI.carteiraModel.peersModel;
         break;
     }
     return _PeersView(

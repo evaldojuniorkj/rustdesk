@@ -827,5 +827,14 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("Request approval", "Solicitar aprobación"),
         ("Forever", "Para sempre"),
         ("username-login-disabled-oidc-unavailable", "O inicio de sesión con nome de usuario e contrasinal está desactivado e non hai métodos de inicio de sesión OIDC dispoñibles."),
+        ("Wallet", ""),
+        ("Add device", ""),
+        ("Import from recent sessions", ""),
+        ("Move to group", ""),
+        ("Add to wallet", ""),
+        ("Group name", ""),
+        ("New group", ""),
+        ("Ungrouped", ""),
+        ("Rename group", ""),
     ].iter().cloned().collect();
 }

@@ -827,5 +827,14 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("Request approval", "Eskatu onespena"),
         ("Forever", "Betiko"),
         ("username-login-disabled-oidc-unavailable", "Erabiltzaile-izenarekin eta pasahitzarekin saioa hastea desgaituta dago, eta ez dago OIDC saioa hasteko metodorik erabilgarri."),
+        ("Wallet", ""),
+        ("Add device", ""),
+        ("Import from recent sessions", ""),
+        ("Move to group", ""),
+        ("Add to wallet", ""),
+        ("Group name", ""),
+        ("New group", ""),
+        ("Ungrouped", ""),
+        ("Rename group", ""),
     ].iter().cloned().collect();
 }

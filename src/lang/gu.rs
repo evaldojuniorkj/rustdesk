@@ -827,5 +827,14 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("Request approval", "મંજૂરીની વિનંતી કરો"),
         ("Forever", "કાયમ માટે"),
         ("username-login-disabled-oidc-unavailable", "વપરાશકર્તાનામ અને પાસવર્ડ વડે લૉગિન અક્ષમ છે અને કોઈ OIDC લૉગિન પદ્ધતિ ઉપલબ્ધ નથી."),
+        ("Wallet", ""),
+        ("Add device", ""),
+        ("Import from recent sessions", ""),
+        ("Move to group", ""),
+        ("Add to wallet", ""),
+        ("Group name", ""),
+        ("New group", ""),
+        ("Ungrouped", ""),
+        ("Rename group", ""),
     ].iter().cloned().collect();
 }

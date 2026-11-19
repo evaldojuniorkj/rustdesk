@@ -827,5 +827,14 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("Request approval", "Αίτημα έγκρισης"),
         ("Forever", "Για πάντα"),
         ("username-login-disabled-oidc-unavailable", "Η σύνδεση με όνομα χρήστη και κωδικό πρόσβασης είναι απενεργοποιημένη και δεν υπάρχουν διαθέσιμες μέθοδοι σύνδεσης OIDC."),
+        ("Wallet", ""),
+        ("Add device", ""),
+        ("Import from recent sessions", ""),
+        ("Move to group", ""),
+        ("Add to wallet", ""),
+        ("Group name", ""),
+        ("New group", ""),
+        ("Ungrouped", ""),
+        ("Rename group", ""),
     ].iter().cloned().collect();
 }

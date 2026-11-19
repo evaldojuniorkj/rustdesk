@@ -827,5 +827,14 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("Request approval", "დამტკიცების მოთხოვნა"),
         ("Forever", "სამუდამოდ"),
         ("username-login-disabled-oidc-unavailable", "მომხმარებლის სახელითა და პაროლით შესვლა გამორთულია და OIDC-ით შესვლის მეთოდები ხელმისაწვდომი არ არის."),
+        ("Wallet", ""),
+        ("Add device", ""),
+        ("Import from recent sessions", ""),
+        ("Move to group", ""),
+        ("Add to wallet", ""),
+        ("Group name", ""),
+        ("New group", ""),
+        ("Ungrouped", ""),
+        ("Rename group", ""),
     ].iter().cloned().collect();
 }

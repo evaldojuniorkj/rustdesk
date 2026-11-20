@@ -70,10 +70,20 @@ Visual: tema "loja" do design system Start X; o nome continua RustDesk.
 
 ### Roteiro, uma parte por vez (protótipo → aprovação → Flutter)
 
-1. Organizar e conta: arrastar dispositivo para grupo; "Adicionar à carteira…"
-   pergunta o grupo; login Start X salvo entre aberturas; levar a carteira
-   local para a conta no primeiro login. Contas são criadas no Start Admin
-   (perfil `start_x`); não criar cadastro público no app.
+1. **Feito em 2026-11-20.** Organizar e conta: arrastar dispositivo para grupo
+   (só a célula do nome arrasta, para não engolir cliques em Conectar e ⋮);
+   "Adicionar à carteira…" pergunta o grupo; login Start X salvo na opção local
+   `carteira-session`; sessão salva busca a carteira da conta ao abrir e nunca
+   mostra a local com o nome da conta; 401 sai da conta; levar a carteira local
+   para a conta no login (a conta vence em ID repetido). Contas são criadas no
+   Start Admin (perfil `start_x`); não criar cadastro público no app.
+   - Limite: a sessão "geral" do Start X dura no máximo 12 h e cai após 2 h sem
+     uso (`Start-X/apps/api/src/servicos/sessao.ts`), então o login salvo
+     costuma expirar de um dia para o outro. Fazer durar exige decisão no
+     servidor (de preferência um token só da carteira, não a sessão inteira).
+   - Pendente menor: a pergunta de levar a carteira se perde se o diálogo de
+     login for fechado durante o login; a etiqueta do arraste aparece longe do
+     cursor; a lista não rola sozinha durante o arraste.
 2. Suporte remoto: cartões "Permitir controle remoto" (só o ID) e "Controlar
    dispositivo remoto", mais o cartão de permissões do macOS.
 3. Configurações: Geral, Segurança (acesso não supervisionado), Rede (servidores

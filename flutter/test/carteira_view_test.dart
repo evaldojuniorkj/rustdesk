@@ -4,6 +4,7 @@ import 'package:flutter_hbb/common/widgets/carteira_view.dart';
 import 'package:flutter_hbb/common/widgets/peer_card.dart';
 import 'package:flutter_hbb/common/widgets/peers_view.dart';
 import 'package:flutter_hbb/generated_bridge.dart';
+import 'package:flutter_hbb/models/peer_model.dart';
 import 'package:flutter_hbb/models/peer_tab_model.dart';
 import 'package:flutter_hbb/models/platform_model.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -74,7 +75,8 @@ void main() {
     peerSearchText.value = '';
   });
 
-  Future<void> pumpCarteira(WidgetTester tester) async {
+  Future<void> pumpCarteira(WidgetTester tester,
+      {bool showRecentAndFavorites = false}) async {
     final overlayKeyState = OverlayKeyState();
     gFFI.dialogManager.setOverlayState(overlayKeyState);
     await tester.pumpWidget(MaterialApp(
@@ -84,7 +86,9 @@ void main() {
           key: overlayKeyState.key,
           initialEntries: [
             OverlayEntry(
-                builder: (_) => Scaffold(body: CarteiraPeersView())),
+                builder: (_) => Scaffold(
+                    body: CarteiraPeersView(
+                        showRecentAndFavorites: showRecentAndFavorites))),
           ],
         ),
       ),
@@ -96,16 +100,15 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   }
 
-  testWidgets('card reflete mudança de status online do peersModel',
+  testWidgets('linha mostra status online e sistema desconhecido',
       (tester) async {
     final model = gFFI.carteiraModel;
     model.addPeer('t-online-1', 'Caixa Online', 'Loja Online');
     await pumpCarteira(tester);
     expect(find.text('Caixa Online'), findsOneWidget);
-    expect(
-        find.byWidgetPredicate((w) =>
-            w is Tooltip && w.message == 'Online'),
-        findsNothing);
+    expect(find.text('Offline'), findsOneWidget);
+    expect(find.text('—'), findsOneWidget);
+    expect(find.text('Online'), findsNothing);
 
     model.peersModel.peers
         .firstWhere((p) => p.id == 't-online-1')
@@ -114,24 +117,79 @@ void main() {
     model.peersModel.notifyListeners();
     await tester.pump();
 
-    expect(find.byWidgetPredicate((w) => w is Tooltip && w.message == 'Online'),
-        findsOneWidget);
+    expect(find.text('Online'), findsOneWidget);
     await unmount(tester);
   });
 
-  testWidgets('seção de grupo colapsa ao tocar no cabeçalho', (tester) async {
+  testWidgets('árvore mostra empresa e filial, recolhe e a busca reabre',
+      (tester) async {
+    const longAlias = 'Caixa Sul com um nome bem comprido para cortar';
     final model = gFFI.carteiraModel;
-    model.addPeer('t-collapse-1', 'Caixa Colapso', 'Grupo Colapso');
+    model.addPeer('t-tree-1', 'Caixa Norte', 'Grupo Norte / Filial Centro');
+    model.addPeer('t-tree-2', longAlias, 'Grupo Sul');
     await pumpCarteira(tester);
-    expect(find.text('Caixa Colapso'), findsOneWidget);
+    expect(find.text('Grupo Norte'), findsOneWidget);
+    expect(find.text('Filial Centro'), findsOneWidget);
+    expect(find.text('Caixa Norte'), findsOneWidget);
+    expect(find.text(longAlias), findsOneWidget);
+    Finder renameIn(String group) => find.descendant(
+        of: find
+            .ancestor(of: find.text(group), matching: find.byType(InkWell))
+            .first,
+        matching: find.byTooltip('Rename'));
+    expect(renameIn('Grupo Norte'), findsNothing);
+    expect(renameIn('Filial Centro'), findsOneWidget);
 
-    await tester.tap(find.text('Grupo Colapso'));
+    await tester.tap(find.byTooltip('Grupo Norte'));
     await tester.pump();
-    expect(find.text('Caixa Colapso'), findsNothing);
+    expect(find.text('Filial Centro'), findsNothing);
+    expect(find.text('Caixa Norte'), findsNothing);
+    expect(find.text(longAlias), findsOneWidget);
 
-    await tester.tap(find.text('Grupo Colapso'));
+    peerSearchText.value = 'Caixa Norte';
     await tester.pump();
-    expect(find.text('Caixa Colapso'), findsOneWidget);
+    expect(find.text('Caixa Norte'), findsOneWidget);
+    expect(find.text(longAlias), findsNothing);
+    await unmount(tester);
+  });
+
+  testWidgets('Dispositivos mostra Conexões recentes e Favoritos no topo',
+      (tester) async {
+    gFFI.recentPeersModel.peers = [
+      Peer.fromJson({'id': 't-rec-1', 'alias': 'Caixa Recente'})
+    ];
+    gFFI.favoritePeersModel.peers = [
+      Peer.fromJson({'id': 't-fav-1', 'alias': 'Caixa Favorita'})
+    ];
+    addTearDown(() {
+      gFFI.recentPeersModel.peers = [];
+      gFFI.favoritePeersModel.peers = [];
+    });
+
+    await pumpCarteira(tester, showRecentAndFavorites: true);
+    expect(find.text('Recent sessions'), findsOneWidget);
+    expect(find.text('Caixa Recente'), findsOneWidget);
+    expect(find.text('Favorites'), findsOneWidget);
+    expect(find.text('Caixa Favorita'), findsOneWidget);
+    await unmount(tester);
+
+    await pumpCarteira(tester);
+    expect(find.text('Recent sessions'), findsNothing);
+    expect(find.text('Caixa Recente'), findsNothing);
+    await unmount(tester);
+  });
+
+  testWidgets('em tela de celular a linha mostra o nome sem estourar',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    gFFI.carteiraModel
+        .addPeer('t-phone-1', 'Caixa do celular', 'Empresa Celular / Filial');
+    await pumpCarteira(tester);
+    expect(tester.takeException(), isNull);
+    expect(tester.getSize(find.text('Caixa do celular')).width,
+        greaterThan(40));
     await unmount(tester);
   });
 
@@ -145,7 +203,7 @@ void main() {
     peerSearchText.value = 'zzz-sem-match';
     await tester.pump();
     expect(find.text('Caixa Busca'), findsNothing);
-    expect(find.text('Add device'), findsNothing);
+    expect(find.text('Empty'), findsOneWidget);
     await unmount(tester);
   });
 

@@ -1710,3 +1710,12 @@ class CarteiraPeerCard extends BasePeerCard {
   @override
   void _update() {}
 }
+
+/// Opens [card]'s menu at [position], for Carteira rows that are not cards.
+Future<void> showPeerCardMenu(
+    BuildContext context, BasePeerCard card, RelativeRect position) async {
+  final items = await card._buildPopupMenuEntry(context);
+  if (!context.mounted) return;
+  await mod_menu.showMenu(
+      context: context, position: position, items: items, elevation: 8);
+}

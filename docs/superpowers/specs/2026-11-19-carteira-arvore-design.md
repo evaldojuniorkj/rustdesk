@@ -121,6 +121,28 @@ Visual: tema "loja" do design system Start X; o nome continua RustDesk.
      reabra a aba.
 4. Sessão remota: abas por computador; Ações, Tela, Arquivos, Chat, Gravar,
    Encerrar; "Aguardando o cliente aceitar" antes de abrir.
+   **Feito em 2026-11-20** (`session_toolbar_labels.dart` + ganchos em
+   `remote_toolbar.dart`, só nas edições Start X): a barra flutuante da sessão
+   usa as cores da marca (`brandMid`, `brandDark` no hover) e os botões de
+   sempre ganham texto: Ações ▾ (menu de controle), Tela ▾ (menu de exibição e
+   qualidade), Arquivos (novo botão, faz o mesmo que "Transferir arquivo" do
+   menu Ações), Chat ▾, Gravar/Gravando e Encerrar com contorno vermelho. Cada
+   botão segue fazendo o que já fazia; o texto é escolhido pela dica (tooltip)
+   original do botão.
+   - Limites: nome, ID e qualidade não entram na barra, porque a aba já mostra
+     o nome (ou ID) e o ícone direta/relay com a dica da conexão; a latência
+     fica no "monitor de qualidade" do menu Tela. A barra continua flutuante
+     (fixar, recolher, arrastar para as bordas), não uma faixa fixa sob as
+     abas; encostada na lateral ela fica mais larga com os textos. Os botões
+     são cheios na cor da marca, não "fantasma" como no protótipo, para casar
+     com os botões só de ícone (fixar, monitor, teclado), que têm ícone branco.
+     Ações e Tela mostram os menus completos do RustDesk; Chat continua com o
+     submenu (chat de texto e chamada de voz). "Aguardando o cliente aceitar"
+     é o aviso do próprio RustDesk ("Aguarde que o lado remoto aceite..."), não
+     o cartão do protótipo. Arquivos reusa o token da sessão como o item do
+     menu, que o RustDesk avisa não valer para sessões aceitas por clique: o
+     cliente pode ter de aceitar de novo (não testado). Se o RustDesk mudar a
+     dica de um botão, ele volta ao ícone original sem texto.
 5. **Feito em 2026-11-20** (`client_home_page.dart`, só na edição cliente), no
    layout do AnyDesk 7: barra de endereço, "Seu endereço" grande com ⓘ, 🔒 e
    Convidar, abas Início/Sessões recentes/Favoritos e blocos (ajuda, instalar no

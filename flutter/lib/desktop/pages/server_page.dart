@@ -416,6 +416,10 @@ class _CloseButton extends StatelessWidget {
   }
 }
 
+// Start X editions restyle the accept window like AnyDesk's; stock RustDesk
+// keeps its look.
+final _startX = kStartXDevEdition.isNotEmpty;
+
 class _CmHeader extends StatefulWidget {
   final Client client;
 
@@ -455,6 +459,7 @@ class _CmHeaderState extends State<_CmHeader>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    if (_startX) return _buildStartX();
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10.0),
@@ -582,6 +587,78 @@ class _CmHeaderState extends State<_CmHeader>
   @override
   bool get wantKeepAlive => true;
 
+  /// AnyDesk-like header on a light background: name and ID in the brand
+  /// blue, then what the peer wants and, once connected, the session time.
+  Widget _buildStartX() {
+    final muted =
+        Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7);
+    final kind = switch (client.type_()) {
+      ClientType.file => translate("Transfer file"),
+      ClientType.camera => translate("View camera"),
+      ClientType.terminal => translate("Terminal"),
+      _ => null,
+    };
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
+      padding: EdgeInsets.all(10.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildClientAvatar().marginOnly(right: 12.0),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(client.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        color: MyTheme.brandMid,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18)),
+                Text("(${client.peerId})",
+                    style: TextStyle(color: MyTheme.brandMid, fontSize: 14)),
+                if (kind != null) Text(kind, style: TextStyle(color: muted)),
+                SizedBox(height: 6.0),
+                Text(
+                    client.authorized
+                        ? client.disconnected
+                            ? translate("Disconnected")
+                            : translate("Connected")
+                        : 'deseja se conectar ao seu dispositivo.',
+                    style: TextStyle(color: muted)),
+                if (client.authorized)
+                  Obx(() => Text(
+                      formatDurationToTime(Duration(seconds: _time.value)),
+                      style: TextStyle(color: muted))),
+              ],
+            ),
+          ),
+          Offstage(
+            offstage: !client.authorized ||
+                (client.type_() != ClientType.remote &&
+                    client.type_() != ClientType.file &&
+                    client.type_() != ClientType.camera),
+            child: IconButton(
+              onPressed: () => checkClickTime(client.id, () {
+                if (client.type_() == ClientType.file) {
+                  gFFI.chatModel.toggleCMFilePage();
+                } else {
+                  gFFI.chatModel
+                      .toggleCMChatPage(MessageKey(client.peerId, client.id));
+                }
+              }),
+              icon: SvgPicture.asset(client.type_() == ClientType.file
+                  ? 'assets/file_transfer.svg'
+                  : 'assets/chat2.svg'),
+              splashRadius: kDesktopIconButtonSplashRadius,
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   Widget _buildClientAvatar() {
     return buildAvatarWidget(
           avatar: client.avatar,
@@ -633,8 +710,11 @@ class _PrivilegeBoardState extends State<_PrivilegeBoard> {
       child: Container(
         decoration: BoxDecoration(
           color: enabled
-              ? (canModify ? MyTheme.accent : MyTheme.accent.withOpacity(0.6))
-              : Colors.grey[700],
+              ? (canModify
+                  ? (_startX ? MyTheme.brandMid : MyTheme.accent)
+                  : (_startX ? MyTheme.brandMid : MyTheme.accent)
+                      .withOpacity(0.6))
+              : (_startX ? Colors.grey[400] : Colors.grey[700]),
           borderRadius: BorderRadius.circular(10.0),
         ),
         padding: EdgeInsets.all(8.0),
@@ -1106,7 +1186,7 @@ class _CmControlPanel extends StatelessWidget {
                   children: [
                     buildButton(
                       context,
-                      color: MyTheme.accent,
+                      color: _startX ? Colors.green[700] : MyTheme.accent,
                       onClick: () {
                         handleAccept(context);
                         windowManager.minimize();
@@ -1120,11 +1200,11 @@ class _CmControlPanel extends StatelessWidget {
             Expanded(
               child: buildButton(
                 context,
-                color: Colors.transparent,
-                border: Border.all(color: Colors.grey),
+                color: _startX ? Colors.red : Colors.transparent,
+                border: _startX ? null : Border.all(color: Colors.grey),
                 onClick: handleDisconnect,
-                text: 'Cancel',
-                textColor: null,
+                text: _startX ? 'Rejeitar' : 'Cancel',
+                textColor: _startX ? Colors.white : null,
               ),
             ),
           ],

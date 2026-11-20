@@ -86,8 +86,23 @@ Visual: tema "loja" do design system Start X; o nome continua RustDesk.
      cursor; a lista não rola sozinha durante o arraste.
 2. Suporte remoto: cartões "Permitir controle remoto" (só o ID) e "Controlar
    dispositivo remoto", mais o cartão de permissões do macOS.
-3. Configurações: Geral, Segurança (acesso não supervisionado), Rede (servidores
-   travados), Conta, Sobre.
+3. **Feito em 2026-11-20** (`simple_settings_page.dart`, nas duas edições Start X).
+   A aba Configurações abre a `SimpleSettingsView`: Geral (tema, idioma, abrir
+   sessões em abas), Segurança (acesso com aprovação sempre ligado; acesso não
+   supervisionado = senha permanente, ligar cadastra e desligar apaga; o que
+   quem acessa pode fazer: teclado e mouse, área de transferência, arquivos,
+   áudio, reiniciar), Rede (servidores só para leitura e conexão direta por IP),
+   Conta (entrar, sincronizar, sair; fica fora da edição cliente) e Sobre
+   (versão e estado do servidor). "Configurações avançadas" troca para a
+   página original na mesma aba. A tela usa o mesmo bloqueio da página original
+   contra quem acessa, e a mesma trava de administrador/PIN para as opções de
+   acesso num app instalado.
+   - Limites: "Iniciar com o computador" e "Procurar atualização" do protótipo
+     ficaram de fora (não há opção pronta no RustDesk); "Sempre ligado" não
+     confere o `approve-mode` (só a edição cliente o fixa a cada abertura); quem
+     muda os servidores nas configurações avançadas os perde ao reabrir o app (o
+     preset volta); `switch2page` (atalhos da home antiga) abre a tela simples
+     na aba Geral; para voltar das configurações avançadas, feche e reabra a aba.
 4. Sessão remota: abas por computador; Ações, Tela, Arquivos, Chat, Gravar,
    Encerrar; "Aguardando o cliente aceitar" antes de abrir.
 5. **Feito em 2026-11-20** (`client_home_page.dart`, só na edição cliente), no

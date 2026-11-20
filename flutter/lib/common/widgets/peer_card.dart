@@ -1067,16 +1067,7 @@ abstract class BasePeerCard extends StatelessWidget {
             : 'Add to wallet'),
         style: style,
       ),
-      proc: () {
-        () async {
-          if (gFFI.carteiraModel.contains(peer.id)) {
-            showCarteiraGroupDialog(peer);
-          } else {
-            gFFI.carteiraModel.addPeer(peer.id, peer.alias, '');
-            showToast(translate('Successful'));
-          }
-        }();
-      },
+      proc: () => showCarteiraGroupDialog(peer),
       padding: menuPadding,
       dismissOnClicked: true,
     );
@@ -1641,6 +1632,7 @@ void connectInPeerTab(BuildContext context, Peer peer, PeerTabIndex tab,
 /// Dialog to assign [peer] to a Carteira group (or create a new one).
 void showCarteiraGroupDialog(Peer peer) {
   final model = gFFI.carteiraModel;
+  final adding = !model.contains(peer.id);
   final rxSelected = model.groupOf(peer.id).obs;
   final newGroup = TextEditingController();
   gFFI.dialogManager.show((setState, close, context) {
@@ -1648,14 +1640,16 @@ void showCarteiraGroupDialog(Peer peer) {
       var group = rxSelected.value;
       final typed = newGroup.text.trim();
       if (typed.isNotEmpty) group = typed;
-      if (group != model.groupOf(peer.id)) {
+      if (adding) {
+        model.addPeer(peer.id, peer.alias, group);
+      } else if (group != model.groupOf(peer.id)) {
         model.moveToGroup(peer.id, group);
       }
       close();
     }
 
     return CustomAlertDialog(
-      title: Text(translate('Move to group')),
+      title: Text(translate(adding ? 'Add to wallet' : 'Move to group')),
       content: Obx(() => Column(
             mainAxisSize: MainAxisSize.min,
             children: [

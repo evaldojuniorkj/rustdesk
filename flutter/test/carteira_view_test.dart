@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hbb/common.dart';
 import 'package:flutter_hbb/common/widgets/carteira_view.dart';
@@ -176,6 +177,73 @@ void main() {
     await pumpCarteira(tester);
     expect(find.text('Recent sessions'), findsNothing);
     expect(find.text('Caixa Recente'), findsNothing);
+    await unmount(tester);
+  });
+
+  testWidgets('Adicionar à carteira pergunta o grupo e já coloca nele',
+      (tester) async {
+    await pumpCarteira(tester);
+    showCarteiraGroupDialog(
+        Peer.fromJson({'id': 't-add-1', 'alias': 'Caixa Nova'}));
+    await tester.pump();
+    expect(find.text('Add to wallet'), findsOneWidget);
+
+    await tester.enterText(
+        find.widgetWithText(TextField, 'New group'), 'Cliente Novo');
+    await tester.tap(find.text('OK'));
+    await tester.pump();
+    expect(gFFI.carteiraModel.contains('t-add-1'), isTrue);
+    expect(gFFI.carteiraModel.groupOf('t-add-1'), 'Cliente Novo');
+    await unmount(tester);
+  });
+
+  testWidgets('arrastar um dispositivo para outro grupo muda o grupo dele',
+      (tester) async {
+    tester.view.physicalSize = const Size(1000, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final model = gFFI.carteiraModel;
+    model.addPeer('t-dnd-1', 'Caixa Arrastada', 'Grupo Origem');
+    model.addPeer('t-dnd-2', 'Caixa Destino', 'Grupo Destino');
+    await pumpCarteira(tester);
+
+    final gesture = await tester.startGesture(
+        tester.getCenter(find.text('Caixa Arrastada')),
+        kind: PointerDeviceKind.mouse);
+    await gesture.moveBy(const Offset(0, 24));
+    await tester.pump();
+    await gesture.moveTo(tester.getCenter(find.text('Grupo Destino')));
+    await tester.pump();
+    await gesture.up();
+    // Lets the row's double-tap timer expire before the tree is disposed.
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(model.groupOf('t-dnd-1'), 'Grupo Destino');
+    await unmount(tester);
+  });
+
+  testWidgets('arrastar a partir do botão Conectar não move o dispositivo',
+      (tester) async {
+    tester.view.physicalSize = const Size(1000, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final model = gFFI.carteiraModel;
+    model.addPeer('t-btn-1', 'Caixa do Botão', 'Grupo Botão');
+    model.addPeer('t-btn-2', 'Caixa Alvo', 'Grupo Alvo');
+    await pumpCarteira(tester);
+
+    final row = find
+        .ancestor(of: find.text('Caixa do Botão'), matching: find.byType(InkWell))
+        .first;
+    final gesture = await tester.startGesture(
+        tester.getCenter(find.descendant(of: row, matching: find.text('Connect'))),
+        kind: PointerDeviceKind.mouse);
+    await gesture.moveBy(const Offset(0, 24));
+    await tester.pump();
+    await gesture.moveTo(tester.getCenter(find.text('Grupo Alvo')));
+    await tester.pump();
+    await gesture.up();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(model.groupOf('t-btn-1'), 'Grupo Botão');
     await unmount(tester);
   });
 

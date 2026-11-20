@@ -10,6 +10,7 @@ import 'peer_model.dart';
 import 'platform_model.dart';
 
 const kOptionCarteiraData = 'carteira-data';
+const kOptionCarteiraSession = 'carteira-session';
 
 /// Observable wrapper around [CarteiraData] with local persistence via
 /// flutter options (RustDesk2.toml). Follows the ab_model.dart pattern.
@@ -29,6 +30,7 @@ class CarteiraModel {
   late final Peers peersModel;
 
   CarteiraData _data = CarteiraData();
+  CarteiraData _local = CarteiraData();
   bool _loaded = false;
   static const _apiHost = 'api.devstartx.vps-kinghost.net';
   final account = RxnString();
@@ -53,6 +55,7 @@ class CarteiraModel {
           .timeout(const Duration(seconds: 12));
       if (response.statusCode == 204) return {};
       if (response.statusCode == 401) {
+        if (token != null) _dropSession();
         throw const FormatException('Confira seu login ou entre novamente.');
       }
       if (response.statusCode == 403) {
@@ -103,6 +106,9 @@ class CarteiraModel {
           _applyRemote(remote);
           _token = token;
           account.value = user['nome'] as String? ?? login;
+          bind.setLocalFlutterOption(
+              k: kOptionCarteiraSession,
+              v: jsonEncode({'token': token, 'account': account.value}));
         } catch (_) {
           try {
             await _request('POST', '/auth/sair', token: token);
@@ -125,24 +131,20 @@ class CarteiraModel {
     final token = _token;
     if (token == null) return;
     await _runSync(() async {
-      _token = null;
-      account.value = null;
-      _loaded = false;
-      ensureLoaded();
+      _dropSession();
       await _request('POST', '/auth/sair', token: token);
     });
   }
 
-  void _change(void Function(CarteiraData data) apply) {
+  Future<void> _change(void Function(CarteiraData data) apply) {
     ensureLoaded();
     final token = _token;
     if (token == null) {
       apply(_data);
       _syncObs();
-      _save();
-      return;
+      return _save();
     }
-    _runSync(() async {
+    return _runSync(() async {
       final edited = CarteiraData.deserialize(_data.serialize());
       apply(edited);
       final result = await _request('PUT', '/suporte/carteira', token: token,
@@ -157,10 +159,57 @@ class CarteiraModel {
   void ensureLoaded() {
     if (_loaded) return;
     _loaded = true;
-    _data =
+    _local =
         CarteiraData.deserialize(bind.getLocalFlutterOption(k: kOptionCarteiraData));
+    _data = _local;
+    _restoreSession();
+    if (_token != null) {
+      // Never show this computer's wallet under the account name.
+      _data = CarteiraData();
+      refreshRemote();
+    }
     _syncObs();
   }
+
+  void _restoreSession() {
+    try {
+      final session =
+          jsonDecode(bind.getLocalFlutterOption(k: kOptionCarteiraSession));
+      if (session is Map &&
+          session['token'] is String &&
+          session['account'] is String) {
+        _token = session['token'] as String;
+        account.value = session['account'] as String;
+      }
+    } on FormatException {
+      // An empty option means no saved session.
+    }
+  }
+
+  /// Leaves the account on this computer and shows the local wallet again.
+  void _dropSession() {
+    _token = null;
+    account.value = null;
+    bind.setLocalFlutterOption(k: kOptionCarteiraSession, v: '');
+    // Not ensureLoaded(): the option write is async, so it could read the
+    // old session back.
+    _data = _local;
+    _syncObs();
+  }
+
+  /// Devices saved only on this computer that the signed-in account lacks.
+  int get localOnlyCount => _token == null
+      ? 0
+      : _local.peers.where((p) => _data.peerById(p.id) == null).length;
+
+  /// Adds the local-only devices to the account; the account wins on clashes.
+  Future<void> mergeLocalIntoAccount() => _change((data) {
+        for (final p in _local.peers) {
+          if (data.peerById(p.id) == null) {
+            data.addPeer(p.id, p.alias, p.groupName);
+          }
+        }
+      });
 
   void _syncObs() {
     peers.value = List.of(_data.peers);

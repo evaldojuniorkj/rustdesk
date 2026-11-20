@@ -165,7 +165,7 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
                 final open = search.isNotEmpty || !_collapsed.contains(key);
                 rows.add(_groupRow(key, 0, peers.where((p) => p.online).length,
                     peers.length, open, false,
-                    label: label, icon: icon));
+                    label: label, icon: icon, dropTarget: false));
                 if (!open) return;
                 for (final peer in matches) {
                   rows.add(_peerRow(peer, 1, compact, tab: tab));
@@ -275,7 +275,9 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
 
   Widget _groupRow(String path, int depth, int online, int total, bool open,
       bool renamable,
-      {String? label, IconData icon = Icons.folder_outlined}) {
+      {String? label,
+      IconData icon = Icons.folder_outlined,
+      bool dropTarget = true}) {
     final primary = Theme.of(context).colorScheme.primary;
     label ??= path.isEmpty
         ? translate('Ungrouped')
@@ -283,7 +285,7 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
     void toggle() => setState(() {
           if (!_collapsed.remove(path)) _collapsed.add(path);
         });
-    return Material(
+    final row = Material(
       color: primary.withOpacity(0.06),
       child: InkWell(
         onTap: toggle,
@@ -328,6 +330,27 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
         ),
       ),
     );
+    if (!dropTarget) return row;
+    return DragTarget<String>(
+      onAcceptWithDetails: (details) => _dropOnGroup(path, details.data),
+      builder: (context, candidates, _) => candidates.isEmpty
+          ? row
+          : Container(
+              foregroundDecoration: BoxDecoration(
+                  color: primary.withOpacity(0.12),
+                  border: Border.all(color: primary, width: 2)),
+              child: row),
+    );
+  }
+
+  /// A device dropped on a group moves there, or joins the wallet in it.
+  void _dropOnGroup(String path, String id) {
+    final model = gFFI.carteiraModel;
+    if (!model.contains(id)) {
+      model.addPeer(id, model.knownPeer(id)?.alias ?? '', path);
+    } else if (model.groupOf(id) != path) {
+      model.moveToGroup(id, path);
+    }
   }
 
   Widget _peerRow(Peer peer, int depth, bool compact,
@@ -357,6 +380,56 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
       ),
     );
     final statusColor = peer.online ? Colors.green : muted;
+    final name = peer.alias.isEmpty ? formatID(peer.id) : peer.alias;
+    final nameCell = Row(children: [
+      SizedBox(width: depth * 24.0 + 8),
+      Icon(Icons.desktop_windows_outlined, size: 18, color: muted),
+      const SizedBox(width: 10),
+      Expanded(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w500)),
+            if (detail.isNotEmpty)
+              Text(detail,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 12, color: muted)),
+          ],
+        ),
+      ),
+    ]);
+    final feedback = Material(
+      elevation: 6,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          const Icon(Icons.desktop_windows_outlined, size: 16),
+          const SizedBox(width: 8),
+          Text(name),
+        ]),
+      ),
+    );
+    final dragging = Opacity(opacity: 0.4, child: nameCell);
+    // Only the name cell drags: with a mouse any 1 px move starts a drag, which
+    // would swallow clicks on Connect and ⋮. Touch needs a long press so a
+    // plain drag keeps scrolling the list.
+    final draggableName = isMobile
+        ? LongPressDraggable<String>(
+            data: peer.id,
+            feedback: feedback,
+            childWhenDragging: dragging,
+            child: nameCell)
+        : Draggable<String>(
+            data: peer.id,
+            feedback: feedback,
+            childWhenDragging: dragging,
+            child: nameCell);
     return InkWell(
       // Same as the peer card: a tap connects on mobile.
       onTap: isMobile ? connect : null,
@@ -366,28 +439,7 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
         decoration: _rowLine(),
         child: _cells(
           compact,
-          Row(children: [
-            SizedBox(width: depth * 24.0 + 8),
-            Icon(Icons.desktop_windows_outlined, size: 18, color: muted),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(peer.alias.isEmpty ? formatID(peer.id) : peer.alias,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.w500)),
-                  if (detail.isNotEmpty)
-                    Text(detail,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 12, color: muted)),
-                ],
-              ),
-            ),
-          ]),
+          draggableName,
           Text(formatID(peer.id)),
           compact
               ? Tooltip(
@@ -403,7 +455,10 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
           peer.platform.isEmpty
               ? const Text('—')
               : Row(children: [
-                  getPlatformImage(peer.platform, size: 16),
+                  // The platform SVGs are white, drawn for the colored card tile.
+                  ColorFiltered(
+                      colorFilter: ColorFilter.mode(muted, BlendMode.srcIn),
+                      child: getPlatformImage(peer.platform, size: 16)),
                   const SizedBox(width: 6),
                   Flexible(
                       child: Text(peer.platform,
@@ -566,6 +621,31 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
   }
 }
 
+/// Asks once, right after login, to send this computer's devices to the account.
+void _askMergeLocal() {
+  final model = gFFI.carteiraModel;
+  final count = model.localOnlyCount;
+  gFFI.dialogManager.show((setState, close, context) {
+    submit() {
+      model.mergeLocalIntoAccount();
+      close();
+    }
+
+    return CustomAlertDialog(
+      title: const Text('Levar esta carteira para a conta?'),
+      content: Text(count == 1
+          ? '1 dispositivo está salvo só neste computador. Envie para a conta e ele aparece em todos os computadores em que você entrar.'
+          : '$count dispositivos estão salvos só neste computador. Envie para a conta e eles aparecem em todos os computadores em que você entrar.'),
+      actions: [
+        dialogButton('Agora não', onPressed: close, isOutline: true),
+        dialogButton('Enviar para a conta', onPressed: submit),
+      ],
+      onSubmit: submit,
+      onCancel: close,
+    );
+  });
+}
+
 class _StartXLoginDialog extends StatefulWidget {
   const _StartXLoginDialog();
 
@@ -588,7 +668,10 @@ class _StartXLoginDialogState extends State<_StartXLoginDialog> {
     if (_login.text.trim().isEmpty || _password.text.isEmpty) return;
     final model = gFFI.carteiraModel;
     await model.signIn(_login.text, _password.text);
-    if (mounted && model.account.value != null) Navigator.of(context).pop();
+    if (mounted && model.account.value != null) {
+      Navigator.of(context).pop();
+      if (model.localOnlyCount > 0) _askMergeLocal();
+    }
   }
 
   @override

@@ -5,9 +5,10 @@ import 'package:flutter_hbb/common/widgets/peers_view.dart';
 import 'package:flutter_hbb/desktop/pages/connection_page.dart';
 import 'package:flutter_hbb/desktop/pages/desktop_home_page.dart';
 import 'package:flutter_hbb/desktop/pages/desktop_tab_page.dart';
+import 'package:flutter_hbb/desktop/pages/support_page.dart';
 
 /// Technician home in the TeamViewer layout: a side menu that switches
-/// between the device tree and the original RustDesk home.
+/// between the device tree, the support view and the original RustDesk home.
 class DevicesHomePage extends StatefulWidget {
   const DevicesHomePage({Key? key}) : super(key: key);
 
@@ -17,6 +18,7 @@ class DevicesHomePage extends StatefulWidget {
 
 class _DevicesHomePageState extends State<DevicesHomePage> {
   var _showDevices = true;
+  var _classic = false;
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +30,20 @@ class _DevicesHomePageState extends State<DevicesHomePage> {
           // The original home stays mounted and goes first: its initState
           // registers services (e.g. 'stop-service') the status bar reads.
           child: IndexedStack(
-            index: _showDevices ? 1 : 0,
+            index: _showDevices ? 1 : (_classic ? 0 : 2),
             children: [
               const DesktopHomePage(),
               _devices(),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                      child: SupportView(
+                          onClassic: () => setState(() => _classic = true))),
+                  const Divider(height: 1),
+                  const OnlineStatusWidget(),
+                ],
+              ),
             ],
           ),
         ),
@@ -89,7 +101,10 @@ class _DevicesHomePageState extends State<DevicesHomePage> {
               () => setState(() => _showDevices = true)),
           const SizedBox(height: 4),
           item(Icons.swap_horiz, 'Suporte remoto', !_showDevices,
-              () => setState(() => _showDevices = false)),
+              () => setState(() {
+                    _showDevices = false;
+                    _classic = false;
+                  })),
           const Spacer(),
           item(Icons.tune, translate('Settings'), false,
               () => DesktopTabPage.onAddSetting()),

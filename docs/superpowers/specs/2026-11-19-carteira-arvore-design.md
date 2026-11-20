@@ -84,8 +84,24 @@ Visual: tema "loja" do design system Start X; o nome continua RustDesk.
    - Pendente menor: a pergunta de levar a carteira se perde se o diálogo de
      login for fechado durante o login; a etiqueta do arraste aparece longe do
      cursor; a lista não rola sozinha durante o arraste.
-2. Suporte remoto: cartões "Permitir controle remoto" (só o ID) e "Controlar
-   dispositivo remoto", mais o cartão de permissões do macOS.
+2. **Feito em 2026-11-20** (`support_page.dart`, seção Suporte remoto da edição
+   técnico): cartões "Permitir controle remoto" (só o ID, com copiar, a linha
+   "Acesso só com a sua aprovação" ou "Acesso não supervisionado ligado" e o
+   link para Configurações › Segurança) e "Controlar dispositivo remoto" (ID,
+   Conectar, Transferir arquivos e as 4 conexões mais recentes), mais o cartão
+   de permissões do macOS (Gravar a tela, Acessibilidade, Monitorar entrada).
+   O botão "Tela clássica" mostra a `DesktopHomePage` original, que segue
+   montada primeiro; clicar de novo em Suporte remoto volta à tela nova. A tela
+   tem o bloqueio contra o mouse de quem acessa, como a home original.
+   - Limites: a edição técnico não fixa o modo de acesso como a edição cliente
+     (`verification-method` e `approve-mode` seguem o padrão do RustDesk), então
+     a senha de uso único da Tela clássica ainda abre acesso; a linha "Acesso só
+     com a sua aprovação" descreve o modelo Start X, não lê esse modo. As
+     conexões recentes mostram nome e ID, sem "há quanto tempo" (o `Peer` não
+     guarda a hora). A tela relê a senha permanente e as permissões a cada 1 s,
+     como a home antiga, mesmo com outra seção aberta. Os avisos da home antiga
+     (instalar, atualizar, erro de sistema, serviço do macOS, Wayland) ficam só
+     na Tela clássica.
 3. Configurações: Geral, Segurança (acesso não supervisionado), Rede (servidores
    travados), Conta, Sobre.
 4. Sessão remota: abas por computador; Ações, Tela, Arquivos, Chat, Gravar,

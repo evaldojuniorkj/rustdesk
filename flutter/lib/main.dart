@@ -133,6 +133,18 @@ Future<void> initEnv(String appType) async {
 void runMainApp(bool startService) async {
   // register uni links
   await initEnv(kAppTypeMain);
+  if (kStartXDevEdition == 'technician' || kStartXCustomerEdition) {
+    const preset = {
+      'custom-rendezvous-server': 'devstartx.vps-kinghost.net:21116',
+      'relay-server': 'devstartx.vps-kinghost.net:21117',
+      'key': 'NiI80WFyygOjuC7Sfmh9+NlUrg3WqT9dgnvda93xIQQ=',
+    };
+    final options = Map<String, dynamic>.from(
+        jsonDecode(bind.mainGetOptionsSync()) as Map);
+    if (preset.entries.any((entry) => options[entry.key] != entry.value)) {
+      await bind.mainSetOptions(json: jsonEncode({...options, ...preset}));
+    }
+  }
   checkUpdate();
   // trigger connection status updater
   await bind.mainCheckConnectStatus();

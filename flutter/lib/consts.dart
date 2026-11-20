@@ -724,3 +724,6 @@ extension WindowsTargetExt on int {
 }
 
 const kCheckSoftwareUpdateFinish = 'check_software_update_finish';
+
+const String kStartXDevEdition = String.fromEnvironment('START_X_DEV_EDITION');
+const bool kStartXCustomerEdition = kStartXDevEdition == 'customer';

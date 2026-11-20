@@ -1,5 +1,11 @@
 import 'dart:convert';
 
+const carteiraGroupSeparator = ' / ';
+
+bool carteiraGroupContains(String group, String path) =>
+    path == group ||
+    (group.isNotEmpty && path.startsWith('$group$carteiraGroupSeparator'));
+
 class CarteiraPeer {
   final String id;
   String alias;

@@ -23,6 +23,7 @@ import '../../models/platform_model.dart';
 import '../../common/shared_state.dart';
 import './popup_menu.dart';
 import './kb_layout_type_chooser.dart';
+import './session_toolbar_labels.dart';
 import 'package:flutter_hbb/utils/scale.dart';
 import 'package:flutter_hbb/common/widgets/custom_scale_base.dart';
 
@@ -325,8 +326,10 @@ class ToolbarState {
 }
 
 class _ToolbarTheme {
-  static const Color blueColor = MyTheme.button;
-  static const Color hoverBlueColor = MyTheme.accent;
+  static const Color blueColor =
+      kStartXDevEdition == '' ? MyTheme.button : MyTheme.brandMid;
+  static const Color hoverBlueColor =
+      kStartXDevEdition == '' ? MyTheme.accent : MyTheme.brandDark;
   static Color inactiveColor = Colors.grey[800]!;
   static Color hoverInactiveColor = Colors.grey[850]!;
 
@@ -842,6 +845,18 @@ class _RemoteToolbarState extends State<RemoteToolbar> {
       state: widget.state,
       setFullscreen: _setFullscreen,
     ));
+    if (kStartXDevEdition.isNotEmpty &&
+        isDesktop &&
+        widget.ffi.connType == ConnType.defaultConn) {
+      toolbarItems.add(_IconMenuButton(
+        assetName: 'assets/transfer.svg',
+        tooltip: 'Transfer file',
+        onPressed: () =>
+            openSessionFileTransfer(context, widget.id, widget.ffi),
+        color: _ToolbarTheme.blueColor,
+        hoverColor: _ToolbarTheme.hoverBlueColor,
+      ));
+    }
     // Do not show keyboard for camera connection type.
     if (widget.ffi.connType == ConnType.defaultConn) {
       toolbarItems.add(_KeyboardMenu(id: widget.id, ffi: widget.ffi));
@@ -3064,8 +3079,11 @@ class _IconMenuButtonState extends State<_IconMenuButton> {
           width: _ToolbarTheme.buttonSize,
           height: _ToolbarTheme.buttonSize,
         );
+    final startX = kStartXDevEdition.isEmpty
+        ? null
+        : SessionToolbarLabel.of(widget.tooltip, widget.assetName);
     var button = SizedBox(
-      width: widget.width ?? _ToolbarTheme.buttonSize,
+      width: startX == null ? widget.width ?? _ToolbarTheme.buttonSize : null,
       height: _ToolbarTheme.buttonSize,
       child: MenuItemButton(
           style: ButtonStyle(
@@ -3084,9 +3102,10 @@ class _IconMenuButtonState extends State<_IconMenuButton> {
                     decoration: BoxDecoration(
                       borderRadius:
                           BorderRadius.circular(_ToolbarTheme.iconRadius),
-                      color: hover ? widget.hoverColor : widget.color,
+                      color: startX?.fill(hover) ??
+                          (hover ? widget.hoverColor : widget.color),
                     ),
-                    child: icon)),
+                    child: startX ?? icon)),
           )),
     ).marginSymmetric(
         horizontal: widget.hMargin ?? _ToolbarTheme.buttonHMargin,
@@ -3149,8 +3168,11 @@ class _IconSubmenuButtonState extends State<_IconSubmenuButton> {
           width: _ToolbarTheme.buttonSize,
           height: _ToolbarTheme.buttonSize,
         );
+    final startX = kStartXDevEdition.isEmpty
+        ? null
+        : SessionToolbarLabel.of(widget.tooltip, widget.svg);
     final button = SizedBox(
-        width: widget.width ?? _ToolbarTheme.buttonSize,
+        width: startX == null ? widget.width ?? _ToolbarTheme.buttonSize : null,
         height: _ToolbarTheme.buttonSize,
         child: SubmenuButton(
             menuStyle:
@@ -3169,7 +3191,7 @@ class _IconSubmenuButtonState extends State<_IconSubmenuButton> {
                               BorderRadius.circular(_ToolbarTheme.iconRadius),
                           color: hover ? widget.hoverColor : widget.color,
                         ),
-                        child: icon))),
+                        child: startX ?? icon))),
             menuChildren: widget
                 .menuChildrenGetter(this)
                 .map((e) => _buildPointerTrackWidget(e, widget.ffi))

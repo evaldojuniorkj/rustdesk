@@ -646,6 +646,9 @@ void _askMergeLocal() {
   });
 }
 
+void showStartXLoginDialog(BuildContext context) => showDialog<void>(
+    context: context, builder: (_) => const _StartXLoginDialog());
+
 class _StartXLoginDialog extends StatefulWidget {
   const _StartXLoginDialog();
 

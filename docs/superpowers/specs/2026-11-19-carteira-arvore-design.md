@@ -93,17 +93,32 @@ Visual: tema "loja" do design system Start X; o nome continua RustDesk.
    O botão "Tela clássica" mostra a `DesktopHomePage` original, que segue
    montada primeiro; clicar de novo em Suporte remoto volta à tela nova. A tela
    tem o bloqueio contra o mouse de quem acessa, como a home original.
-   - Limites: a edição técnico não fixa o modo de acesso como a edição cliente
-     (`verification-method` e `approve-mode` seguem o padrão do RustDesk), então
-     a senha de uso único da Tela clássica ainda abre acesso; a linha "Acesso só
-     com a sua aprovação" descreve o modelo Start X, não lê esse modo. As
-     conexões recentes mostram nome e ID, sem "há quanto tempo" (o `Peer` não
-     guarda a hora). A tela relê a senha permanente e as permissões a cada 1 s,
-     como a home antiga, mesmo com outra seção aberta. Os avisos da home antiga
-     (instalar, atualizar, erro de sistema, serviço do macOS, Wayland) ficam só
-     na Tela clássica.
-3. Configurações: Geral, Segurança (acesso não supervisionado), Rede (servidores
-   travados), Conta, Sobre.
+   - Limites: a linha "Acesso só com a sua aprovação" descreve o modo que o
+     `main.dart` fixa nas duas edições Start X; quem mudar o modo nas
+     configurações avançadas o perde ao reabrir o app. As conexões recentes
+     mostram nome e ID, sem "há quanto tempo" (o `Peer` não guarda a hora). A
+     tela relê a senha permanente e as permissões a cada 1 s, como a home
+     antiga, mesmo com outra seção aberta. Os avisos da home antiga (instalar,
+     atualizar, erro de sistema, serviço do macOS, Wayland) ficam só na Tela
+     clássica.
+3. **Feito em 2026-11-20** (`simple_settings_page.dart`, nas duas edições Start X).
+   A aba Configurações abre a `SimpleSettingsView`: Geral (tema, idioma, abrir
+   sessões em abas), Segurança (acesso com aprovação sempre ligado; acesso não
+   supervisionado = senha permanente, ligar cadastra e desligar apaga; o que
+   quem acessa pode fazer: teclado e mouse, área de transferência, arquivos,
+   áudio, reiniciar), Rede (servidores só para leitura e conexão direta por IP),
+   Conta (entrar, sincronizar, sair; fica fora da edição cliente) e Sobre
+   (versão e estado do servidor). "Configurações avançadas" troca para a
+   página original na mesma aba. A tela usa o mesmo bloqueio da página original
+   contra quem acessa, e a mesma trava de administrador/PIN para as opções de
+   acesso num app instalado.
+   - Limites: "Iniciar com o computador" e "Procurar atualização" do protótipo
+     ficaram de fora (não há opção pronta no RustDesk); "Sempre ligado" não lê
+     o `approve-mode` (o `main.dart` o fixa a cada abertura nas duas edições);
+     quem muda os servidores nas configurações avançadas os perde ao reabrir o
+     app (o preset volta); `switch2page` (atalhos da home antiga) abre a tela
+     simples na aba Geral; para voltar das configurações avançadas, feche e
+     reabra a aba.
 4. Sessão remota: abas por computador; Ações, Tela, Arquivos, Chat, Gravar,
    Encerrar; "Aguardando o cliente aceitar" antes de abrir.
 5. **Feito em 2026-11-20** (`client_home_page.dart`, só na edição cliente), no

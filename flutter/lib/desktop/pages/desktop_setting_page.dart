@@ -13,6 +13,7 @@ import 'package:flutter_hbb/desktop/pages/desktop_home_page.dart';
 import 'package:flutter_hbb/common/widgets/keyboard_shortcuts/page_body.dart';
 import 'package:flutter_hbb/desktop/pages/desktop_keyboard_shortcuts_page.dart';
 import 'package:flutter_hbb/desktop/pages/desktop_tab_page.dart';
+import 'package:flutter_hbb/desktop/pages/simple_settings_page.dart';
 import 'package:flutter_hbb/desktop/widgets/remote_toolbar.dart';
 import 'package:flutter_hbb/mobile/widgets/dialog.dart';
 import 'package:flutter_hbb/models/platform_model.dart';
@@ -127,6 +128,7 @@ class _DesktopSettingPageState extends State<DesktopSettingPage>
   final RxBool _block = false.obs;
   final RxBool _canBeBlocked = false.obs;
   Timer? _videoConnTimer;
+  var _simple = kStartXDevEdition == 'technician' || kStartXCustomerEdition;
 
   _DesktopSettingPageState(SettingsTabKey initialTabkey) {
     var initialIndex = DesktopSettingPage.tabKeys.indexOf(initialTabkey);
@@ -276,6 +278,14 @@ class _DesktopSettingPageState extends State<DesktopSettingPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    if (_simple) {
+      return Scaffold(
+          body: _buildBlock(children: [
+        Expanded(
+            child: SimpleSettingsView(
+                onAdvanced: () => setState(() => _simple = false))),
+      ]));
+    }
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       body: _buildBlock(

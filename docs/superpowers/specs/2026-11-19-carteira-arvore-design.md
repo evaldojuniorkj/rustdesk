@@ -90,7 +90,19 @@ Visual: tema "loja" do design system Start X; o nome continua RustDesk.
    travados), Conta, Sobre.
 4. Sessão remota: abas por computador; Ações, Tela, Arquivos, Chat, Gravar,
    Encerrar; "Aguardando o cliente aceitar" antes de abrir.
-5. App do cliente (molde AnyDesk, nosso visual): "Seu endereço" em destaque,
+5. **Feito em 2026-11-20** (`client_home_page.dart`, só na edição cliente), no
+   layout do AnyDesk 7: barra de endereço, "Seu endereço" grande com ⓘ, 🔒 e
+   Convidar, abas Início/Sessões recentes/Favoritos e blocos (ajuda, instalar no
+   Windows, acesso não supervisionado = senha permanente, permissões do macOS).
+   Acesso sem senha temporária (`verification-method = use-permanent-password`,
+   `approve-mode = ''`). A tela tem o bloqueio contra o mouse de quem acessa,
+   como a home original. A janela de aceite segue a do RustDesk.
+   - Limites: o bloco de acesso não supervisionado não se atualiza se a senha
+     mudar em Configurações › Segurança; os avisos da home antiga (erro de
+     sistema, atualização no Windows, serviço do macOS, Wayland) não aparecem
+     nesta tela; abrir a edição cliente num computador fixa esse modo de acesso
+     na configuração do RustDesk dele.
+   Desenho original da parte 5 (molde AnyDesk, nosso visual): "Seu endereço" em destaque,
    janela de aceite no canto com ícones de permissão, Aceitar/Recusar e, na
    sessão, tempo, Chat e Desconectar; histórico de quem acessou.
 

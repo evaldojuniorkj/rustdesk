@@ -282,8 +282,48 @@ tr.peer:hover .row-connect, tr.peer.sel .row-connect, tr.peer:focus-within .row-
 .cwin { width: min(100%, 820px); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--surface); box-shadow: var(--shadow-lg); }
 .cwin-title .ctab { align-self: flex-end; display: inline-flex; align-items: center; gap: 6px; height: 32px; margin-left: 12px; padding: 0 14px; border-radius: 8px 8px 0 0; background: var(--surface); color: var(--fg); font-size: 13px; font-weight: 600; }
 .cwin-title .ctab .i { width: 15px; height: 15px; }
-#client-body { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 16px; }
-#client-body .wide { grid-column: 1 / -1; }
+.cwin.ad { width: min(100%, 980px); }
+.ad-title { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 12px; background: var(--nav-bg); color: #fff; }
+.ad-logo { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+.ad-logo .i { width: 16px; height: 16px; color: var(--marca-300); }
+.ad-tab { align-self: flex-end; display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 14px; border-radius: 6px 6px 0 0; background: var(--surface); color: var(--fg); font-size: 13px; }
+.ad-tab .i { width: 14px; height: 14px; }
+.ad-bar { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.ad-ok { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 9999px; background: var(--ok-dot); color: #fff; flex: none; }
+.ad-ok .i { width: 14px; height: 14px; stroke-width: 3; }
+.ad-ok.busy { background: var(--marca-500); animation: blink 1.2s infinite; }
+.ad-addr { flex: 1; display: flex; align-items: center; height: 34px; padding: 0 2px 0 12px; border: 1px solid var(--border-field); border-radius: var(--r-md); background: var(--surface); min-width: 0; }
+.ad-addr:focus-within { border-color: var(--focus); }
+.ad-addr input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; height: 100%; }
+.ad-addr .icon-btn { width: 30px; height: 30px; }
+#client-body { padding: 24px 28px; display: grid; gap: 16px; background: var(--stage); min-height: 380px; align-content: start; }
+.ad-me { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; padding: 8px 0 12px; }
+.ad-me-label { font-size: 18px; }
+.ad-id { font-size: 40px; line-height: 48px; font-weight: 700; color: var(--accent); letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+.ad-invite { color: var(--accent); border-color: var(--accent); }
+.ad-tabs { display: flex; gap: 28px; flex-wrap: wrap; }
+.ad-tabs button { border: 0; background: none; padding: 4px 0; font-size: 15px; color: var(--fg-3); }
+.ad-tabs button[aria-selected="true"] { color: var(--accent); font-weight: 700; }
+.ad-section { font-size: 13px; color: var(--fg-2); padding-bottom: 6px; border-bottom: 1px solid var(--fg-3); }
+.ad-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.ad-tile { min-height: 170px; padding: 16px; display: flex; flex-direction: column; gap: 8px; color: #fff; border-radius: 2px; }
+.ad-tile b { font-size: 15px; }
+.ad-tile span { font-size: 13px; line-height: 18px; }
+.ad-tile .link-btn { color: inherit; font-weight: 500; margin-top: auto; align-self: flex-start; text-align: left; }
+.ad-tile.navy { background: #0C2451; }
+.ad-tile.blue { background: var(--marca-600); }
+.ad-tile.yellow { background: var(--etiqueta); color: var(--n-950); }
+.ad-tile.gray { background: var(--n-200); color: var(--n-900); }
+.ad-empty { margin: 8px 0; }
+.c-side { border-right: 1px solid var(--border); background: var(--group-bg); }
+.c-side-head { padding: 10px 16px; background: var(--accent); color: var(--accent-fg); font-weight: 700; font-size: 13px; letter-spacing: .02em; }
+.c-side-in { padding: 16px; display: grid; gap: 10px; align-content: start; }
+.c-main { padding: 20px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.c-main h2 { margin: 0; font-size: 18px; line-height: 28px; }
+.c-status { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--border); font-size: 13px; color: var(--fg-2); }
+.sdot { width: 8px; height: 8px; border-radius: 9999px; background: var(--ok-dot); flex: none; }
+.sdot.busy { background: var(--marca-500); animation: blink 1.2s infinite; }
+@media (max-width: 47.5rem) { #client-body { grid-template-columns: minmax(0, 1fr); } .c-side { border-right: 0; border-bottom: 1px solid var(--border); } }
 .status-line { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--ok); }
 .status-line .sdot { width: 8px; height: 8px; border-radius: 9999px; background: var(--ok-dot); }
 .status-line.busy { color: var(--accent-soft-fg); }
@@ -298,8 +338,9 @@ tr.peer:hover .row-connect, tr.peer.sel .row-connect, tr.peer:focus-within .row-
 .acc-head b { display: block; }
 .acc-head span:not(.avatar) { display: block; font-size: 12px; color: var(--fg-2); }
 .acc-timer { margin-left: auto; font-weight: 700; color: var(--accent-soft-fg) !important; font-size: 14px !important; }
-.acc-perms { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-.perm-btn { display: grid; justify-items: center; gap: 4px; padding: 8px 4px; border: 1px solid var(--border); border-radius: var(--r-lg); background: transparent; color: var(--fg-3); font-size: 11px; line-height: 14px; text-align: center; transition: background .15s, color .15s; }
+.acc-perms { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+.perm-btn { display: grid; place-items: center; height: 36px; border: 1px solid var(--border); border-radius: var(--r-md); background: transparent; color: var(--fg-3); transition: background .15s, color .15s; }
+.perm-btn span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .perm-btn[aria-pressed="true"] { border-color: var(--marca-300); background: var(--accent-soft); color: var(--accent-soft-fg); }
 .perm-btn[aria-pressed="false"] .i { opacity: .45; }
 .acc-actions { justify-content: flex-end; }
@@ -468,9 +509,19 @@ dialog::backdrop { background: var(--scrim); }
 
   <!-- App do cliente -->
   <div class="client-stage" id="client" hidden>
-    <div class="cwin" role="region" aria-label="App do cliente">
-      <div class="cwin-title"><span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>RustDesk<span class="ctab"><span data-icon="home"></span>Início</span></div>
-      <div class="cwin-body" id="client-body"></div>
+    <div class="cwin ad" role="region" aria-label="App do cliente">
+      <div class="ad-title"><span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span class="ad-logo"><span data-icon="monitor"></span>RustDesk</span>
+        <span class="ad-tab"><span data-icon="screen"></span>Nova sessão</span>
+      </div>
+      <form class="ad-bar" id="c-addr-form">
+        <span class="ad-ok" id="client-status" title="RustDesk pronto. Conexão segura."><span data-icon="check"></span></span>
+        <label class="ad-addr"><input id="c-addr" placeholder="Digite o endereço remoto" aria-label="Endereço remoto" autocomplete="off">
+          <button type="button" class="icon-btn" data-act="c-files" aria-label="Transferir arquivos"><span data-icon="transfer"></span></button>
+          <button class="icon-btn" aria-label="Conectar"><span data-icon="connect"></span></button></label>
+        <button type="button" class="icon-btn" data-act="c-menu" aria-label="Menu"><span data-icon="menu"></span></button>
+      </form>
+      <div class="ad-body" id="client-body"></div>
     </div>
     <div class="accept" id="client-accept" hidden></div>
   </div>
@@ -523,6 +574,7 @@ const ICONS = {
   send: '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
   file: '<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6"/>',
   home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+  menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
 };
 const icon = (n, cls = '') => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
 const $ = (s, el = document) => el.querySelector(s);
@@ -801,28 +853,27 @@ function renderSession() {
 let clientTimer;
 function renderClient() {
   const c = state.client, active = c.stage === 'active';
+  const tab = c.tab || 'inicio';
+  const tiles = `
+    <div class="ad-tile navy"><b>Precisa de ajuda?</b><span>Passe seu endereço ao técnico da Start X e clique em Aceitar quando o pedido aparecer. Não precisa de senha.</span></div>
+    <div class="ad-tile yellow"><b>Instalar o RustDesk</b><button class="link-btn" data-act="c-install">Instalar neste computador…</button></div>
+    <div class="ad-tile blue"><b>Acesso não supervisionado</b><span>${c.unattended ? 'Ligado. Quem tiver a senha entra sem você aceitar.' : 'Para computadores sem ninguém na frente, como servidores.'}</span>
+      <button class="link-btn" data-act="c-unattended">${c.unattended ? 'Desligar…' : 'Configurar senha…'}</button></div>
+    <div class="ad-tile gray"><b>Permissões do macOS</b><span>Libere Gravar a tela e Acessibilidade para o técnico ver e controlar este computador.</span>
+      <button class="link-btn" data-act="c-perms">Configurar…</button></div>`;
   $('#client-body').innerHTML = `
-    <div class="card">
-      <span class="label">Este computador</span>
-      <div class="cred"><span class="muted">Seu endereço</span>
-        <div class="cred-row"><span class="big" id="c-id">482 913 027</span><button class="icon-btn" data-copy="c-id" aria-label="Copiar endereço">${icon('copy')}</button></div></div>
-      <div class="status-line${active ? ' busy' : ''}"><span class="sdot"></span>${active ? 'Em suporte com Ana Ribeiro' : 'Pronto para receber suporte'}</div>
-      <div class="perm">${icon('lock')}<div class="txt"><b>Acesso não supervisionado</b><span>${c.unattended ? 'Ligado. Quem tiver a senha entra sem você aceitar.' : 'Desligado. Cada acesso espera você aceitar.'}</span></div>
-        <button class="btn btn-sm" data-act="c-unattended">${c.unattended ? 'Desligar' : 'Configurar'}</button></div>
-    </div>
-    <div class="card plain">
-      <h2>Como receber ajuda</h2>
-      <ol class="steps">
-        <li><b>Passe seu endereço</b> para o técnico da Start X.</li>
-        <li><b>Aceite o pedido</b> que aparece no canto da tela.</li>
-        <li><b>Acompanhe e desconecte</b> quando quiser, pela mesma janelinha.</li>
-      </ol>
-      <p class="muted">Não precisa de senha. Ninguém entra sem você aceitar${c.unattended ? ', a não ser com a senha do acesso não supervisionado' : ''}.</p>
-    </div>
-    <div class="card plain wide">
-      <h2>Quem acessou este computador</h2>
-      <div class="list">${c.history.map(h => `<div class="li"><span class="avatar">${h.ini}</span><span><b>${esc(h.who)}</b> <span class="muted">${h.what}</span></span><span class="when">${h.when}</span></div>`).join('')}</div>
-    </div>`;
+    <div class="ad-me"><span class="ad-me-label">Seu endereço</span><b class="ad-id" id="c-id">482 913 027</b>
+      <button class="icon-btn" data-act="c-info" aria-label="Sobre o endereço">${icon('info')}</button>
+      <button class="icon-btn" data-act="c-unattended" aria-label="Acesso não supervisionado" title="Acesso não supervisionado">${icon('lock')}</button>
+      <button class="btn btn-sm ad-invite" data-act="c-invite">${icon('send')}Convidar</button></div>
+    <div class="ad-tabs" role="tablist">${[['inicio', 'Início'], ['recentes', 'Sessões recentes'], ['favoritos', 'Favoritos']]
+      .map(([k, t]) => `<button role="tab" aria-selected="${tab === k}" data-ctab="${k}">${t}</button>`).join('')}</div>
+    <div class="ad-section">${{ inicio: 'Início', recentes: 'Sessões recentes', favoritos: 'Favoritos' }[tab]}</div>
+    ${tab === 'inicio' ? `<div class="ad-tiles">${tiles}</div>`
+      : `<p class="muted ad-empty">${tab === 'recentes' ? 'Nenhuma sessão recente. Os computadores que você acessar aparecem aqui.' : 'Nenhum favorito ainda.'}</p>`}`;
+  const st = $('#client-status');
+  st.classList.toggle('busy', active);
+  st.title = active ? 'Em suporte com Ana Ribeiro.' : 'RustDesk pronto. Conexão segura.';
   const acc = $('#client-accept');
   acc.hidden = c.stage === 'idle';
   if (c.stage !== 'idle') {
@@ -834,7 +885,7 @@ function renderClient() {
           ${active ? '<span class="tnum acc-timer" id="c-timer">00:00</span>' : ''}</div>
         <p>${active ? 'Está vendo e controlando este computador. Toque num ícone para tirar ou dar a permissão agora.' : 'Quer ver e controlar este computador. Escolha o que ela pode fazer.'}</p>
         <div class="acc-perms" role="group" aria-label="O que ela pode fazer">
-          ${PERMS.map(([k, ic, t]) => `<button class="perm-btn" aria-pressed="${!!c.perms[k]}" data-cperm="${k}">${icon(ic)}<span>${t}</span></button>`).join('')}
+          ${PERMS.map(([k, ic, t]) => `<button class="perm-btn" aria-pressed="${!!c.perms[k]}" data-cperm="${k}" title="${t}">${icon(ic)}<span>${t}</span></button>`).join('')}
         </div>
         <div class="row-btns acc-actions">${active
           ? `<button class="btn btn-sm" data-act="c-chat">${icon('message')}Chat</button><button class="btn btn-danger" data-act="c-end">Desconectar</button>`
@@ -1204,6 +1255,17 @@ document.addEventListener('click', e => {
       s.pick = null; renderSession();
       return toast(side === 'local' ? `${name} enviado para ${s.name}.` : `${name} baixado para Downloads.`);
     }
+    case 'c-info': return toast('Este é o endereço deste computador no RustDesk. Passe ele para o técnico.');
+    case 'c-invite': {
+      const text = 'Para me dar suporte pelo RustDesk, use o endereço 482 913 027.';
+      const ok = () => toast('Convite copiado. Cole no WhatsApp ou no e-mail do técnico.');
+      try { navigator.clipboard.writeText(text).then(ok, ok); } catch { ok(); }
+      return;
+    }
+    case 'c-install': return toast('No app real, instala o RustDesk neste computador.');
+    case 'c-perms': return toast('No app real, abre os Ajustes do macOS na permissão certa.');
+    case 'c-files': return toast('Digite o endereço e escolha Transferir arquivos (no app real).');
+    case 'c-menu': return toast('No app real, abre o menu com Configurações e Sobre.');
     case 'c-accept': state.client.stage = 'active'; state.client.startedAt = Date.now(); return render();
     case 'c-deny': state.client.stage = 'idle'; render(); return toast('Pedido recusado. Ninguém acessou este computador.');
     case 'c-end': {
@@ -1232,6 +1294,12 @@ document.addEventListener('click', e => {
   if (state.client.stage === 'active') toast(`${b.textContent.trim()}: ${state.client.perms[k] ? 'liberado' : 'bloqueado'} para Ana Ribeiro.`);
 });
 $('#sim-request').addEventListener('click', () => { state.client.stage = 'request'; render(); });
+document.addEventListener('click', e => { const b = e.target.closest('[data-ctab]'); if (b) { state.client.tab = b.dataset.ctab; renderClient(); } });
+$('#c-addr-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const v = $('#c-addr').value.replace(/\s/g, '');
+  if (v) toast(`Conectando a ${fmtId(v)}… (no app real abre a sessão)`);
+});
 
 render();
 </script>

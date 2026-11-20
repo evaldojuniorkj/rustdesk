@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hbb/common.dart';
 import 'package:flutter_hbb/consts.dart';
+import 'package:flutter_hbb/desktop/pages/client_home_page.dart';
 import 'package:flutter_hbb/desktop/pages/desktop_home_page.dart';
 import 'package:flutter_hbb/desktop/pages/devices_home_page.dart';
 import 'package:flutter_hbb/desktop/pages/desktop_setting_page.dart';
@@ -50,11 +51,13 @@ class _DesktopTabPageState extends State<DesktopTabPage> {
         selectedIcon: Icons.home_sharp,
         unselectedIcon: Icons.home_outlined,
         closable: false,
-        page: kStartXDevEdition == 'technician'
-            ? const DevicesHomePage(key: ValueKey(kTabLabelHomePage))
-            : DesktopHomePage(
-                key: const ValueKey(kTabLabelHomePage),
-              )));
+        page: kStartXCustomerEdition
+            ? const ClientHomePage(key: ValueKey(kTabLabelHomePage))
+            : kStartXDevEdition == 'technician'
+                ? const DevicesHomePage(key: ValueKey(kTabLabelHomePage))
+                : DesktopHomePage(
+                    key: const ValueKey(kTabLabelHomePage),
+                  )));
     if (bind.isIncomingOnly()) {
       tabController.onSelected = (key) {
         if (key == kTabLabelHomePage) {

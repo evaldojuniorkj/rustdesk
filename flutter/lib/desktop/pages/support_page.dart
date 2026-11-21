@@ -13,10 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 /// Technician "Suporte remoto": this computer's ID, connecting out and the
 /// macOS permissions. No password is shown; access is accepted by click.
 class SupportView extends StatefulWidget {
-  /// Switches the section to the original RustDesk home.
-  final VoidCallback onClassic;
-
-  const SupportView({Key? key, required this.onClassic}) : super(key: key);
+  const SupportView({Key? key}) : super(key: key);
 
   @override
   State<SupportView> createState() => _SupportViewState();
@@ -96,12 +93,6 @@ class _SupportViewState extends State<SupportView> {
       child: Row(children: [
         const Text('Suporte remoto',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const Spacer(),
-        TextButton.icon(
-          onPressed: widget.onClassic,
-          icon: const Icon(Icons.history, size: 16),
-          label: const Text('Tela clássica'),
-        ),
       ]),
     );
   }

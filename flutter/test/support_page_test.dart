@@ -95,7 +95,7 @@ void main() {
     gFFI.serverModel.serverId.text = '482 913 027';
     gFFI.serverModel.serverPasswd.text = 'k7m2xq';
     await tester.pumpWidget(MaterialApp(
-        home: Scaffold(body: SupportView(onClassic: () {}))));
+        home: Scaffold(body: const SupportView())));
     // Runs the first refresh, which periodic_immediate defers by zero time.
     await tester.pump(Duration.zero);
     await tester.pump();

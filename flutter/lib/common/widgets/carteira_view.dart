@@ -657,11 +657,15 @@ class _StartXLoginDialog extends StatefulWidget {
 }
 
 class _StartXLoginDialogState extends State<_StartXLoginDialog> {
+  final _name = TextEditingController();
   final _login = TextEditingController();
   final _password = TextEditingController();
+  bool _creating = false;
+  String? _formError;
 
   @override
   void dispose() {
+    _name.dispose();
     _login.dispose();
     _password.dispose();
     super.dispose();
@@ -670,7 +674,18 @@ class _StartXLoginDialogState extends State<_StartXLoginDialog> {
   Future<void> _submit() async {
     if (_login.text.trim().isEmpty || _password.text.isEmpty) return;
     final model = gFFI.carteiraModel;
-    await model.signIn(_login.text, _password.text);
+    if (_creating) {
+      final problem = _name.text.trim().isEmpty
+          ? 'Informe o seu nome.'
+          : _password.text.length < 8
+              ? 'Use uma senha de pelo menos 8 caracteres.'
+              : null;
+      setState(() => _formError = problem);
+      if (problem != null) return;
+      await model.signUp(_name.text, _login.text, _password.text);
+    } else {
+      await model.signIn(_login.text, _password.text);
+    }
     if (mounted && model.account.value != null) {
       Navigator.of(context).pop();
       if (model.localOnlyCount > 0) _askMergeLocal();
@@ -681,24 +696,48 @@ class _StartXLoginDialogState extends State<_StartXLoginDialog> {
   Widget build(BuildContext context) {
     final model = gFFI.carteiraModel;
     return Obx(() => AlertDialog(
-          title: const Text('Entrar com Start X'),
+          title: Text(_creating ? 'Criar conta' : 'Entrar com Start X'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (_creating)
+                TextField(
+                  controller: _name,
+                  autofocus: true,
+                  enabled: !model.syncing.value,
+                  decoration: const InputDecoration(labelText: 'Nome'),
+                ),
               TextField(
                 controller: _login,
-                autofocus: true,
+                autofocus: !_creating,
                 enabled: !model.syncing.value,
-                decoration: const InputDecoration(labelText: 'E-mail ou usuário'),
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(labelText: 'E-mail'),
               ),
               TextField(
                 controller: _password,
                 obscureText: true,
                 enabled: !model.syncing.value,
                 onSubmitted: (_) => _submit(),
-                decoration: const InputDecoration(labelText: 'Senha'),
+                decoration: InputDecoration(
+                    labelText: 'Senha',
+                    helperText: _creating ? 'Pelo menos 8 caracteres' : null),
               ),
-              if (model.syncError.value case final error?) Text(error),
+              if (_formError ?? model.syncError.value case final error?)
+                Text(error),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: model.syncing.value
+                    ? null
+                    : () => setState(() {
+                          _creating = !_creating;
+                          _formError = null;
+                          model.syncError.value = null;
+                        }),
+                child: Text(_creating
+                    ? 'Já tenho conta. Entrar'
+                    : 'Não tem conta? Criar conta'),
+              ),
             ],
           ),
           actions: [
@@ -708,7 +747,7 @@ class _StartXLoginDialogState extends State<_StartXLoginDialog> {
             ),
             FilledButton(
               onPressed: model.syncing.value ? null : _submit,
-              child: const Text('Entrar'),
+              child: Text(_creating ? 'Criar conta' : 'Entrar'),
             ),
           ],
         ));

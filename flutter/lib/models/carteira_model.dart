@@ -61,8 +61,17 @@ class CarteiraModel {
       if (response.statusCode == 403) {
         throw const FormatException('Use uma conta interna do Start X.');
       }
+      if (response.statusCode == 409 && path == '/suporte/contas') {
+        throw const FormatException('Já existe uma conta com este e-mail.');
+      }
       if (response.statusCode == 409) {
         throw const FormatException('A carteira mudou em outro computador. Atualize e tente novamente.');
+      }
+      if (response.statusCode == 400) {
+        throw const FormatException('Confira o e-mail e use uma senha de pelo menos 8 caracteres.');
+      }
+      if (response.statusCode == 429) {
+        throw const FormatException('Muitas tentativas. Aguarde alguns minutos e tente de novo.');
       }
       if (response.statusCode != 200) {
         throw const FormatException('Serviço da Carteira indisponível.');
@@ -96,16 +105,24 @@ class CarteiraModel {
     _syncObs();
   }
 
-  Future<void> signIn(String login, String password) => _runSync(() async {
-        final session = await _request('POST', '/suporte/entrar',
-            body: {'login': login.trim(), 'senha': password});
+  Future<void> signIn(String login, String password) => _openSession(
+      '/suporte/entrar', {'login': login.trim(), 'senha': password}, login);
+
+  Future<void> signUp(String name, String email, String password) =>
+      _openSession('/suporte/contas',
+          {'nome': name.trim(), 'email': email.trim(), 'senha': password}, name);
+
+  Future<void> _openSession(
+          String path, Map<String, dynamic> body, String fallbackName) =>
+      _runSync(() async {
+        final session = await _request('POST', path, body: body);
         final token = session['token'] as String;
         try {
           final remote = await _request('GET', '/suporte/carteira', token: token);
           final user = session['usuario'] as Map<String, dynamic>;
           _applyRemote(remote);
           _token = token;
-          account.value = user['nome'] as String? ?? login;
+          account.value = user['nome'] as String? ?? fallbackName;
           bind.setLocalFlutterOption(
               k: kOptionCarteiraSession,
               v: jsonEncode({'token': token, 'account': account.value}));

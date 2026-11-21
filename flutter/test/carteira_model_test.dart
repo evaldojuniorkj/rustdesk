@@ -101,6 +101,29 @@ void main() {
       }, () => MockClient((req) async => _json({'revisao': 1, 'dispositivos': []})));
     });
 
+    test('criar conta entra nela e o e-mail repetido é explicado', () async {
+      Map<String, dynamic>? sent;
+      final m = CarteiraModel(null);
+      await http.runWithClient(
+          () => m.signUp('Ana', 'ana@teste.local', 'segredo-forte'),
+          () => MockClient((req) async {
+                if (req.url.path == '/suporte/contas') {
+                  sent = jsonDecode(req.body) as Map<String, dynamic>;
+                  return _login;
+                }
+                return _json({'revisao': 0, 'dispositivos': []});
+              }));
+      expect(sent, {'nome': 'Ana', 'email': 'ana@teste.local', 'senha': 'segredo-forte'});
+      expect(m.account.value, 'Ana');
+      expect(binding.options[kOptionCarteiraSession], contains('t1'));
+
+      final outro = CarteiraModel(null);
+      await http.runWithClient(
+          () => outro.signUp('Ana', 'ana@teste.local', 'segredo-forte'),
+          () => MockClient((req) async => http.Response('{}', 409)));
+      expect(outro.syncError.value, 'Já existe uma conta com este e-mail.');
+    });
+
     test('token recusado pelo servidor sai da conta', () async {
       binding.slowWrites = true;
       binding.options[kOptionCarteiraSession] =

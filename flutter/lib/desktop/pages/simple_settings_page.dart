@@ -358,7 +358,7 @@ class _SimpleSettingsViewState extends State<SimpleSettingsView> {
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                        'As contas da equipe são criadas pelo administrador no Start Admin. Peça a sua a ele.',
+                        'Não tem conta? Crie a sua na janela de entrar, em "Criar conta".',
                         style: TextStyle(fontSize: 13)),
                   ] else ...[
                     Text(account,

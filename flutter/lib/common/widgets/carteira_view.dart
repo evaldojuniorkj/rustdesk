@@ -125,17 +125,17 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
               final members = model.peers
                   .where((peer) => carteiraGroupContains(path, peer.groupName))
                   .toList();
-              if (!members.any(hit)) return;
+              // An empty network or branch still shows, unless a search hides it.
+              final emptyShown = members.isEmpty &&
+                  path.isNotEmpty &&
+                  (search.isEmpty || path.toLowerCase().contains(search));
+              if (!members.any(hit) && !emptyShown) return;
               final open = search.isNotEmpty || !_collapsed.contains(path);
               final online = members
                   .where((peer) => viewPeers[peer.id]?.online == true)
                   .length;
-              // renameGroup only renames exact matches, so a company that
-              // only holds filiais gets no rename button.
-              final renamable = path.isNotEmpty &&
-                  members.any((peer) => peer.groupName == path);
               rows.add(_groupRow(
-                  path, depth, online, members.length, open, renamable));
+                  path, depth, online, members.length, open, path.isNotEmpty));
               if (!open) return;
               if (path.isNotEmpty) {
                 for (final child in groups[path] ?? const <String>{}) {
@@ -274,7 +274,7 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
   }
 
   Widget _groupRow(String path, int depth, int online, int total, bool open,
-      bool renamable,
+      bool withMenu,
       {String? label,
       IconData icon = Icons.folder_outlined,
       bool dropTarget = true}) {
@@ -315,17 +315,12 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
                       style: const TextStyle(fontWeight: FontWeight.w600)),
                 ),
                 const SizedBox(width: 8),
-                _pill('$online/$total online', primary),
+                total == 0
+                    ? _pill('vazia', _muted())
+                    : _pill('$online/$total online', primary),
               ]),
             ),
-            if (renamable)
-              IconButton(
-                tooltip: translate('Rename'),
-                iconSize: 16,
-                visualDensity: VisualDensity.compact,
-                onPressed: () => _renameGroupDialog(context, path),
-                icon: const Icon(Icons.edit_outlined),
-              ),
+            if (withMenu) _groupMenu(path, total),
           ]),
         ),
       ),
@@ -341,6 +336,60 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
                   border: Border.all(color: primary, width: 2)),
               child: row),
     );
+  }
+
+  Widget _groupMenu(String path, int total) => PopupMenuButton<String>(
+        tooltip: 'Opções do grupo',
+        iconSize: 18,
+        icon: const Icon(Icons.more_vert),
+        onSelected: (choice) {
+          switch (choice) {
+            case 'filial':
+              _newGroupDialog(context, parent: path);
+            case 'renomear':
+              _renameGroupDialog(context, path);
+            case 'excluir':
+              gFFI.carteiraModel.removeGroup(path);
+          }
+        },
+        itemBuilder: (_) => [
+          // Two levels only: network / branch.
+          if (!path.contains(carteiraGroupSeparator))
+            const PopupMenuItem(value: 'filial', child: Text('Nova filial')),
+          PopupMenuItem(value: 'renomear', child: Text(translate('Rename'))),
+          if (total == 0)
+            const PopupMenuItem(value: 'excluir', child: Text('Excluir')),
+        ],
+      );
+
+  void _newGroupDialog(BuildContext context, {String parent = ''}) {
+    final name = TextEditingController();
+    gFFI.dialogManager.show((setState, close, context) {
+      submit() {
+        // A '/' would nest a level below the branch.
+        final text = name.text.replaceAll('/', '-').trim();
+        if (text.isEmpty) return;
+        gFFI.carteiraModel.addGroup(
+            parent.isEmpty ? text : '$parent$carteiraGroupSeparator$text');
+        close();
+      }
+
+      return CustomAlertDialog(
+        title: Text(parent.isEmpty ? 'Nova rede' : 'Nova filial em $parent'),
+        content: TextField(
+          controller: name,
+          autofocus: true,
+          decoration: InputDecoration(
+              labelText: parent.isEmpty ? 'Nome da rede' : 'Nome da filial'),
+        ),
+        actions: [
+          dialogButton('Cancel', onPressed: close, isOutline: true),
+          dialogButton('OK', onPressed: submit),
+        ],
+        onSubmit: submit,
+        onCancel: close,
+      );
+    });
   }
 
   /// A device dropped on a group moves there, or joins the wallet in it.
@@ -533,6 +582,11 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
       spacing: 8,
       children: [
         OutlinedButton.icon(
+          onPressed: () => _newGroupDialog(context),
+          icon: const Icon(Icons.create_new_folder_outlined, size: 18),
+          label: const Text('Nova rede'),
+        ),
+        OutlinedButton.icon(
           onPressed: () => _addDeviceDialog(context),
           icon: const Icon(Icons.add, size: 18),
           label: Text(translate('Add device')),
@@ -592,7 +646,7 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
                 focusNode: focusNode,
                 decoration:
                     InputDecoration(labelText: translate('Group name'),
-                        hintText: 'Empresa / Filial'),
+                        hintText: 'Rede / Filial'),
                 onChanged: (v) => group.text = v,
               ),
             ),

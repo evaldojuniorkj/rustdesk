@@ -100,7 +100,8 @@ class CarteiraModel {
   void _applyRemote(Map<String, dynamic> remote) {
     final revision = remote['revisao'] as int;
     final devices = remote['dispositivos'] as List<dynamic>;
-    _data = CarteiraData.deserialize(jsonEncode({'peers': devices}));
+    _data = CarteiraData.deserialize(
+        jsonEncode({'peers': devices, 'groups': remote['grupos'] ?? []}));
     _revision = revision;
     _syncObs();
   }
@@ -168,6 +169,7 @@ class CarteiraModel {
           body: {
             'revisao': _revision,
             'dispositivos': edited.peers.map((peer) => peer.toJson()).toList(),
+            'grupos': edited.createdGroups.toList(),
           });
       _applyRemote(result);
     });
@@ -226,6 +228,7 @@ class CarteiraModel {
             data.addPeer(p.id, p.alias, p.groupName);
           }
         }
+        _local.createdGroups.forEach(data.addGroup);
       });
 
   void _syncObs() {
@@ -256,6 +259,10 @@ class CarteiraModel {
 
   void renameGroup(String oldName, String newName) =>
       _change((data) => data.renameGroup(oldName, newName));
+
+  void addGroup(String path) => _change((data) => data.addGroup(path));
+
+  void removeGroup(String path) => _change((data) => data.removeGroup(path));
 
   bool contains(String id) {
     ensureLoaded();

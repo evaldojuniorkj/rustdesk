@@ -70,6 +70,32 @@ void main() {
       expect(restored.groups, ['Padaria']);
     });
 
+    test('rede e filial nascem vazias, sem dispositivo, e voltam salvas', () {
+      final data = CarteiraData();
+      data.addGroup('Padaria Pão Quente');
+      data.addGroup('Padaria Pão Quente / Filial Centro');
+      expect(data.groups, ['Padaria Pão Quente', 'Padaria Pão Quente / Filial Centro']);
+      expect(data.peers, isEmpty);
+      expect(CarteiraData.deserialize(data.serialize()).groups, data.groups);
+    });
+
+    test('renomear a rede leva as filiais e os dispositivos dela', () {
+      final data = CarteiraData();
+      data.addGroup('Rede Velha / Filial Vazia');
+      data.addPeer('1', 'Caixa', 'Rede Velha / Filial Cheia');
+      data.renameGroup('Rede Velha', 'Rede Nova');
+      expect(data.groups, ['Rede Nova / Filial Cheia', 'Rede Nova / Filial Vazia']);
+    });
+
+    test('excluir tira só o grupo vazio', () {
+      final data = CarteiraData();
+      data.addGroup('Rede / Vazia');
+      data.addPeer('1', 'Caixa', 'Rede / Cheia');
+      data.removeGroup('Rede / Vazia');
+      data.removeGroup('Rede / Cheia');
+      expect(data.groups, ['Rede / Cheia']);
+    });
+
     test('deserialize com json inválido retorna carteira vazia', () {
       expect(CarteiraData.deserialize('não é json').peers, isEmpty);
       expect(CarteiraData.deserialize('{"peers": 42}').peers, isEmpty);

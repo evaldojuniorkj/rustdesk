@@ -133,13 +133,6 @@ void main() {
     expect(find.text('Filial Centro'), findsOneWidget);
     expect(find.text('Caixa Norte'), findsOneWidget);
     expect(find.text(longAlias), findsOneWidget);
-    Finder renameIn(String group) => find.descendant(
-        of: find
-            .ancestor(of: find.text(group), matching: find.byType(InkWell))
-            .first,
-        matching: find.byTooltip('Rename'));
-    expect(renameIn('Grupo Norte'), findsNothing);
-    expect(renameIn('Filial Centro'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Grupo Norte'));
     await tester.pump();
@@ -244,6 +237,51 @@ void main() {
     await gesture.up();
     await tester.pump(const Duration(milliseconds: 500));
     expect(model.groupOf('t-btn-1'), 'Grupo Botão');
+    await unmount(tester);
+  });
+
+  testWidgets('Nova rede e Nova filial nascem vazias, e Excluir tira a vazia',
+      (tester) async {
+    tester.view.physicalSize = const Size(1000, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pumpCarteira(tester);
+
+    await tester.tap(find.text('Nova rede'));
+    await tester.pump();
+    await tester.enterText(
+        find.widgetWithText(TextField, 'Nome da rede'), 'Rede Sem Máquina');
+    await tester.tap(find.text('OK'));
+    await tester.pump();
+    expect(find.text('Rede Sem Máquina'), findsOneWidget);
+
+    Finder menuOf(String group) => find.descendant(
+        of: find
+            .ancestor(of: find.text(group), matching: find.byType(InkWell))
+            .first,
+        matching: find.byTooltip('Opções do grupo'));
+    await tester.tap(menuOf('Rede Sem Máquina'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.text('Nova filial'));
+    await tester.pump(const Duration(milliseconds: 300));
+    // The dialog opens only after the menu route has finished closing.
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.enterText(
+        find.widgetWithText(TextField, 'Nome da filial'), 'Filial Vazia');
+    await tester.tap(find.text('OK'));
+    await tester.pump();
+    expect(find.text('Filial Vazia'), findsOneWidget);
+    expect(gFFI.carteiraModel.groups,
+        contains('Rede Sem Máquina / Filial Vazia'));
+
+    await tester.tap(menuOf('Filial Vazia'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.text('Excluir'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Filial Vazia'), findsNothing);
+    expect(find.text('Rede Sem Máquina'), findsOneWidget);
     await unmount(tester);
   });
 

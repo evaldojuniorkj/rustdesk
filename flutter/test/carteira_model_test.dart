@@ -124,6 +124,37 @@ void main() {
       expect(outro.syncError.value, 'Já existe uma conta com este e-mail.');
     });
 
+    test('rede vazia vai para a conta e aparece em outro computador', () async {
+      binding.options[kOptionCarteiraSession] =
+          jsonEncode({'token': 't1', 'account': 'Ana'});
+      Map<String, dynamic>? sent;
+      final m = CarteiraModel(null);
+      await http.runWithClient(() async {
+        m.ensureLoaded();
+        await _settle();
+        m.addGroup('Padaria Pão Quente');
+        await _settle();
+      }, () => MockClient((req) async {
+            if (req.method == 'PUT') {
+              sent = jsonDecode(req.body) as Map<String, dynamic>;
+              return _json({'revisao': 1, 'dispositivos': [], 'grupos': sent!['grupos']});
+            }
+            return _json({'revisao': 0, 'dispositivos': []});
+          }));
+      expect(sent?['grupos'], ['Padaria Pão Quente']);
+
+      final outro = CarteiraModel(null);
+      await http.runWithClient(() async {
+        outro.ensureLoaded();
+        await _settle();
+      }, () => MockClient((req) async => _json({
+            'revisao': 1,
+            'dispositivos': [],
+            'grupos': ['Padaria Pão Quente']
+          })));
+      expect(outro.groups, ['Padaria Pão Quente']);
+    });
+
     test('token recusado pelo servidor sai da conta', () async {
       binding.slowWrites = true;
       binding.options[kOptionCarteiraSession] =

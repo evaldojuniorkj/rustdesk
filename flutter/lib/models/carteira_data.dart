@@ -34,10 +34,27 @@ class CarteiraPeer {
 class CarteiraData {
   final List<CarteiraPeer> peers = [];
 
+  /// Groups created on their own (a network or a branch with no device yet);
+  /// the others exist only while a device is in them.
+  final Set<String> createdGroups = {};
+
   List<String> get groups {
-    final names = peers.map((p) => p.groupName).where((g) => g.isNotEmpty).toSet().toList();
+    final names = {
+      ...peers.map((p) => p.groupName).where((g) => g.isNotEmpty),
+      ...createdGroups,
+    }.toList();
     names.sort();
     return names;
+  }
+
+  void addGroup(String path) {
+    if (path.isNotEmpty) createdGroups.add(path);
+  }
+
+  /// Only an empty group goes: one holding a device, directly or in a branch, stays.
+  void removeGroup(String path) {
+    if (peers.any((p) => carteiraGroupContains(path, p.groupName))) return;
+    createdGroups.removeWhere((g) => carteiraGroupContains(path, g));
   }
 
   List<CarteiraPeer> peersInGroup(String group) =>
@@ -68,19 +85,36 @@ class CarteiraData {
     peerById(id)?.groupName = groupName;
   }
 
+  /// Renaming a network carries its branches along.
   void renameGroup(String oldName, String newName) {
+    String renamed(String path) => carteiraGroupContains(oldName, path)
+        ? newName + path.substring(oldName.length)
+        : path;
     for (final p in peers) {
-      if (p.groupName == oldName) p.groupName = newName;
+      p.groupName = renamed(p.groupName);
     }
+    final created = createdGroups.map(renamed).toSet();
+    createdGroups
+      ..clear()
+      ..addAll(created);
   }
 
-  String serialize() => jsonEncode({'peers': peers.map((p) => p.toJson()).toList()});
+  String serialize() => jsonEncode({
+        'peers': peers.map((p) => p.toJson()).toList(),
+        'groups': createdGroups.toList(),
+      });
 
   static CarteiraData deserialize(String json) {
     final data = CarteiraData();
     try {
       final decoded = jsonDecode(json);
       if (decoded is! Map) return data;
+      final groups = decoded['groups'];
+      if (groups is List) {
+        for (final group in groups) {
+          if (group is String) data.addGroup(group);
+        }
+      }
       final list = decoded['peers'];
       if (list is! List) return data;
       for (final entry in list) {

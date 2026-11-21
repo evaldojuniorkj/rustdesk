@@ -163,6 +163,15 @@ Visual: tema "loja" do design system Start X; o nome continua RustDesk.
    janela de aceite no canto com ícones de permissão, Aceitar/Recusar e, na
    sessão, tempo, Chat e Desconectar; histórico de quem acessou.
 
+6. **Feito em 2026-11-21.** Redes e filiais vazias: "Nova rede" cria o grupo de
+   cima sem dispositivo, e o ⋮ da rede tem "Nova filial", "Renomear" e "Excluir"
+   (só em grupo vazio). Dois níveis: rede › filial › máquinas. Os grupos vazios
+   ficam em `CarteiraData.createdGroups`, salvos no computador e na conta
+   (`grupos` no `rustdesk-carteira`). Renomear a rede leva as filiais e os
+   dispositivos dela.
+   - Limite: um app de antes desta versão, ao salvar a carteira da conta, manda a
+     lista de grupos vazia e apaga as redes e filiais vazias.
+
 ### Como compilar e abrir no macOS (edição técnico)
 
 Em `flutter/`, com a `target/release/liblibrustdesk.dylib` já compilada:
@@ -172,8 +181,5 @@ depois `codesign --force --deep --sign - build/macos/Build/Products/Release/Rust
 
 ## Limites conhecidos
 
-- Renomear uma empresa que só tem filiais não renomeia as filiais
-  (`CarteiraData.renameGroup` troca só o nome exato). Isso já acontece antes
-  desta entrega.
 - O status online continua sendo o último estado conhecido (Recentes/Favoritos
   + `queryOnlines`).

@@ -97,6 +97,22 @@ void main() {
     await tester.pump();
   }
 
+  // The same names also show in the tree behind the dialog.
+  Finder menuItem(String text) => find.descendant(
+      of: find.byType(DropdownMenuItem<String>), matching: find.text(text));
+
+  Future<void> pickFromDropdown(
+      WidgetTester tester, String key, String option) async {
+    await tester.tap(find.byKey(Key(key)));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    // A long list scrolls inside the menu.
+    await tester.ensureVisible(menuItem(option).last);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(menuItem(option).last);
+    await tester.pump(const Duration(seconds: 1));
+  }
+
   Future<void> unmount(WidgetTester tester) async {
     await tester.pumpWidget(const SizedBox());
   }
@@ -181,12 +197,17 @@ void main() {
     await tester.pump();
     expect(find.text('Add to wallet'), findsOneWidget);
 
+    await pickFromDropdown(tester, 'carteira-rede', '+ Nova rede…');
     await tester.enterText(
-        find.widgetWithText(TextField, 'New group'), 'Cliente Novo');
+        find.widgetWithText(TextField, 'Nome da nova rede'), 'Cliente Novo');
+    await pickFromDropdown(tester, 'carteira-filial', '+ Nova filial…');
+    await tester.enterText(
+        find.widgetWithText(TextField, 'Nome da nova filial'), 'Matriz');
     await tester.tap(find.text('OK'));
     await tester.pump();
     expect(gFFI.carteiraModel.contains('t-add-1'), isTrue);
-    expect(gFFI.carteiraModel.groupOf('t-add-1'), 'Cliente Novo');
+    expect(gFFI.carteiraModel.groupOf('t-add-1'), 'Cliente Novo / Matriz');
+    await tester.pump(const Duration(milliseconds: 500));
     await unmount(tester);
   });
 
@@ -346,10 +367,11 @@ void main() {
     await unmount(tester);
   });
 
-  testWidgets('dialog de adicionar dispositivo sugere grupos existentes',
+  testWidgets('Adicionar dispositivo escolhe a rede e mostra só as filiais dela',
       (tester) async {
     final model = gFFI.carteiraModel;
-    model.addPeer('t-auto-1', 'Caixa Auto', 'Padaria Sugestao');
+    model.addPeer('t-auto-1', 'Caixa Auto', 'Padaria Sugestao / Centro');
+    model.addGroup('Outra Rede / Filial Alheia');
     await pumpCarteira(tester);
 
     await tester.scrollUntilVisible(find.text('Add device'), 120,
@@ -357,11 +379,20 @@ void main() {
     await tester.pump();
     await tester.tap(find.text('Add device'));
     await tester.pump();
-    final groupField = find.widgetWithText(TextField, 'Group name');
-    expect(groupField, findsOneWidget);
-    await tester.enterText(groupField, 'Pada');
+    await tester.enterText(find.widgetWithText(TextField, 'ID'), 't-auto-2');
+    await pickFromDropdown(tester, 'carteira-rede', 'Padaria Sugestao');
+    await tester.tap(find.byKey(const Key('carteira-filial')));
     await tester.pump();
-    expect(find.text('Padaria Sugestao'), findsWidgets);
+    await tester.pump(const Duration(seconds: 1));
+    expect(menuItem('Filial Alheia'), findsNothing);
+    await tester.ensureVisible(menuItem('Centro').last);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(menuItem('Centro').last);
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.text('OK'));
+    await tester.pump();
+    expect(model.groupOf('t-auto-2'), 'Padaria Sugestao / Centro');
+    await tester.pump(const Duration(milliseconds: 500));
     await unmount(tester);
   });
 }

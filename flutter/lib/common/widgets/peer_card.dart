@@ -15,6 +15,7 @@ import '../../models/peer_model.dart';
 import '../../models/platform_model.dart';
 import '../../desktop/widgets/material_mod_popup_menu.dart' as mod_menu;
 import '../../desktop/widgets/popup_menu.dart';
+import 'carteira_group_picker.dart';
 import 'dart:math' as math;
 
 typedef PopupMenuEntryBuilder = Future<List<mod_menu.PopupMenuEntry<String>>>
@@ -1633,40 +1634,28 @@ void connectInPeerTab(BuildContext context, Peer peer, PeerTabIndex tab,
 void showCarteiraGroupDialog(Peer peer) {
   final model = gFFI.carteiraModel;
   final adding = !model.contains(peer.id);
-  final rxSelected = model.groupOf(peer.id).obs;
-  final newGroup = TextEditingController();
+  final groups = model.groups.toList();
+  final choice = CarteiraGroupChoice(groups,
+      current: adding ? null : model.groupOf(peer.id));
   gFFI.dialogManager.show((setState, close, context) {
     submit() {
-      var group = rxSelected.value;
-      final typed = newGroup.text.trim();
-      if (typed.isNotEmpty) group = typed;
+      if (!choice.ready) return;
+      final group = choice.path;
       if (adding) {
-        model.addPeer(peer.id, peer.alias, group);
-      } else if (group != model.groupOf(peer.id)) {
-        model.moveToGroup(peer.id, group);
+        model.addPeer(peer.id, peer.alias, group, newGroups: choice.newGroups);
+      } else if (group != model.groupOf(peer.id) || choice.newGroups.isNotEmpty) {
+        model.moveToGroup(peer.id, group, newGroups: choice.newGroups);
       }
       close();
     }
 
     return CustomAlertDialog(
       title: Text(translate(adding ? 'Add to wallet' : 'Move to group')),
-      content: Obx(() => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (final g in ['', ...model.groups])
-                RadioListTile<String>(
-                  dense: true,
-                  title: Text(g.isEmpty ? translate('Ungrouped') : g),
-                  value: g,
-                  groupValue: rxSelected.value,
-                  onChanged: (v) => rxSelected.value = v ?? '',
-                ),
-              TextField(
-                controller: newGroup,
-                decoration:
-                    InputDecoration(labelText: translate('New group')),
-              ),
-            ],
+      content: SizedBox(
+          width: 380,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: CarteiraGroupPicker(choice: choice, groups: groups),
           )),
       actions: [
         dialogButton('Cancel', onPressed: close, isOutline: true),

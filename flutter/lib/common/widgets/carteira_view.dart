@@ -11,6 +11,7 @@ import '../../common.dart';
 import '../../consts.dart';
 import '../../models/platform_model.dart';
 import '../formatter/id_formatter.dart';
+import 'carteira_group_picker.dart';
 import 'dialog.dart';
 import 'peer_card.dart';
 import 'peers_view.dart';
@@ -649,13 +650,14 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
   void _addDeviceDialog(BuildContext context) {
     final id = TextEditingController();
     final alias = TextEditingController();
-    final group = TextEditingController();
+    final groups = gFFI.carteiraModel.groups.toList();
+    final choice = CarteiraGroupChoice(groups);
     gFFI.dialogManager.show((setState, close, context) {
       submit() {
         final idText = id.text.trim();
-        if (idText.isEmpty) return;
-        gFFI.carteiraModel
-            .addPeer(idText, alias.text.trim(), group.text.trim());
+        if (idText.isEmpty || !choice.ready) return;
+        gFFI.carteiraModel.addPeer(idText, alias.text.trim(), choice.path,
+            newGroups: choice.newGroups);
         close();
       }
 
@@ -673,27 +675,7 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
               controller: alias,
               decoration: InputDecoration(labelText: translate('Alias')),
             ),
-            Autocomplete<String>(
-              optionsBuilder: (value) {
-                final groups = gFFI.carteiraModel.groups;
-                final text = value.text.trim().toLowerCase();
-                if (text.isEmpty) return groups;
-                return groups
-                    .where((g) => g.toLowerCase().contains(text))
-                    .toList();
-              },
-              onSelected: (selection) => group.text = selection,
-              fieldViewBuilder:
-                  (context, controller, focusNode, onFieldSubmitted) =>
-                      TextField(
-                controller: controller,
-                focusNode: focusNode,
-                decoration:
-                    InputDecoration(labelText: translate('Group name'),
-                        hintText: 'Rede / Filial'),
-                onChanged: (v) => group.text = v,
-              ),
-            ),
+            CarteiraGroupPicker(choice: choice, groups: groups),
           ],
         ),
         actions: [

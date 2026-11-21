@@ -249,13 +249,23 @@ class CarteiraModel {
   Future<void> _save() =>
       bind.setLocalFlutterOption(k: kOptionCarteiraData, v: _data.serialize());
 
-  void addPeer(String id, String alias, String groupName) =>
-      _change((data) => data.addPeer(id, alias, groupName));
+  /// [newGroups] go in the same save, so a network or branch typed in the
+  /// dialog is not lost to a second save running while the first one is.
+  void addPeer(String id, String alias, String groupName,
+          {List<String> newGroups = const []}) =>
+      _change((data) {
+        newGroups.forEach(data.addGroup);
+        data.addPeer(id, alias, groupName);
+      });
 
   void removePeer(String id) => _change((data) => data.removePeer(id));
 
-  void moveToGroup(String id, String groupName) =>
-      _change((data) => data.moveToGroup(id, groupName));
+  void moveToGroup(String id, String groupName,
+          {List<String> newGroups = const []}) =>
+      _change((data) {
+        newGroups.forEach(data.addGroup);
+        data.moveToGroup(id, groupName);
+      });
 
   void renameGroup(String oldName, String newName) =>
       _change((data) => data.renameGroup(oldName, newName));

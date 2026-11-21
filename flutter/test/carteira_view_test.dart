@@ -299,6 +299,10 @@ void main() {
     await tester.enterText(find.widgetWithText(TextField, 'Filial 1'), 'Centro');
     await tester.tap(find.text('Adicionar filial'));
     await tester.pump();
+    // The floating label sits on the top border: without a gap it covers the field above.
+    final above = tester.getRect(find.widgetWithText(TextField, 'Filial 1'));
+    final below = tester.getRect(find.widgetWithText(TextField, 'Filial 2'));
+    expect(below.top - above.bottom, greaterThanOrEqualTo(12));
     await tester.enterText(find.widgetWithText(TextField, 'Filial 2'), 'Norte');
     await tester.tap(find.text('Adicionar filial'));
     await tester.pump();

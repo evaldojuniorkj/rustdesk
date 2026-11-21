@@ -385,9 +385,13 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
         content: SizedBox(
           width: 380,
           child: SingleChildScrollView(
+            padding: const EdgeInsets.only(top: 8),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
+              // The floating label sits on the top border: without a gap it
+              // covers the field above.
+              spacing: 16,
               children: [
                 if (parent.isEmpty)
                   TextField(
@@ -411,7 +415,6 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
                         onPressed: () => setState(() => branches.removeAt(i)),
                       ),
                   ]),
-                const SizedBox(height: 8),
                 TextButton.icon(
                   onPressed: () =>
                       setState(() => branches.add(TextEditingController())),
@@ -660,6 +663,7 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
         title: Text(translate('Add device')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
+          spacing: 16,
           children: [
             TextField(
               controller: id,
@@ -793,6 +797,7 @@ class _StartXLoginDialogState extends State<_StartXLoginDialog> {
           title: Text(_creating ? 'Criar conta' : 'Entrar na conta'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
+            spacing: 16,
             children: [
               if (_creating)
                 TextField(

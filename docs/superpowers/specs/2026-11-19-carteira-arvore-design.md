@@ -77,13 +77,12 @@ Visual: tema "loja" do design system Start X; o nome continua RustDesk.
    mostra a local com o nome da conta; 401 sai da conta; levar a carteira local
    para a conta no login (a conta vence em ID repetido). Contas são criadas no
    Start Admin (perfil `start_x`); não criar cadastro público no app.
-   - Servidor (Start-X): contas próprias do RustDesk, fora das contas do Start
-     Admin (`Start-X/docs/superpowers/specs/2026-11-20-contas-do-rustdesk-design.md`).
-     O técnico cria a conta no diálogo de entrar ("Criar conta": nome, e-mail,
+   - Servidor: `rustdesk-carteira`, no fork `evaldojuniorkj/rustdesk-server`
+     (`docs/carteira.md` lá), ao lado do `hbbs`, sem nada do Start X. O
+     técnico cria a conta no diálogo de entrar ("Criar conta": nome, e-mail,
      senha de 8+) por `POST /suporte/contas` e entra por `POST /suporte/entrar`;
-     a sessão cai com 30 dias sem uso (o uso renova). Nenhuma conta do Start X
-     entra no RustDesk. Na VPS, o Caddy só deixa sair `/suporte/*` na de teste
-     (`api.devstartx.vps-kinghost.net`).
+     a sessão cai com 30 dias sem uso (o uso renova). Endereço:
+     `https://rustdesk.devstartx.vps-kinghost.net` (VPS de teste).
    - Limite: sem confirmação de e-mail nem "Esqueci a senha"; quem esquece a
      senha cria outra conta.
    - Pendente menor: a pergunta de levar a carteira se perde se o diálogo de

@@ -499,7 +499,7 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
               TextButton.icon(
                 onPressed: busy ? null : _showStartXLogin,
                 icon: const Icon(Icons.person_outline),
-                label: const Text('Entrar com Start X'),
+                label: const Text('Entrar na conta'),
               )
             else ...[
               Text(account),
@@ -696,7 +696,7 @@ class _StartXLoginDialogState extends State<_StartXLoginDialog> {
   Widget build(BuildContext context) {
     final model = gFFI.carteiraModel;
     return Obx(() => AlertDialog(
-          title: Text(_creating ? 'Criar conta' : 'Entrar com Start X'),
+          title: Text(_creating ? 'Criar conta' : 'Entrar na conta'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

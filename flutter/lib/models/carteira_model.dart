@@ -32,7 +32,7 @@ class CarteiraModel {
   CarteiraData _data = CarteiraData();
   CarteiraData _local = CarteiraData();
   bool _loaded = false;
-  static const _apiHost = 'api.devstartx.vps-kinghost.net';
+  static const _apiHost = 'rustdesk.devstartx.vps-kinghost.net';
   final account = RxnString();
   final syncError = RxnString();
   final syncing = false.obs;
@@ -59,7 +59,7 @@ class CarteiraModel {
         throw const FormatException('Confira seu login ou entre novamente.');
       }
       if (response.statusCode == 403) {
-        throw const FormatException('Use uma conta interna do Start X.');
+        throw const FormatException('Acesso recusado pelo servidor da carteira.');
       }
       if (response.statusCode == 409 && path == '/suporte/contas') {
         throw const FormatException('Já existe uma conta com este e-mail.');
@@ -91,7 +91,7 @@ class CarteiraModel {
     } on FormatException catch (error) {
       syncError.value = error.message;
     } catch (_) {
-      syncError.value = 'Não foi possível sincronizar com o Start X.';
+      syncError.value = 'Não foi possível sincronizar a carteira.';
     } finally {
       syncing.value = false;
     }

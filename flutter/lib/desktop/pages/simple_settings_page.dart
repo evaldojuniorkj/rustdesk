@@ -348,13 +348,13 @@ class _SimpleSettingsViewState extends State<SimpleSettingsView> {
                 children: [
                   if (account == null) ...[
                     const Text(
-                        'Entre com a sua conta Start X para guardar a carteira na nuvem e usar os mesmos grupos em todos os computadores.'),
+                        'Entre na sua conta para guardar a carteira na nuvem e usar os mesmos grupos em todos os computadores.'),
                     const SizedBox(height: 12),
                     ElevatedButton.icon(
                       onPressed:
                           busy ? null : () => showStartXLoginDialog(context),
                       icon: const Icon(Icons.login, size: 18),
-                      label: const Text('Entrar com Start X'),
+                      label: const Text('Entrar na conta'),
                     ),
                     const SizedBox(height: 12),
                     const Text(

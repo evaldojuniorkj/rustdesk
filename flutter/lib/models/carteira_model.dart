@@ -97,7 +97,7 @@ class CarteiraModel {
   }
 
   Future<void> signIn(String login, String password) => _runSync(() async {
-        final session = await _request('POST', '/auth/entrar',
+        final session = await _request('POST', '/suporte/entrar',
             body: {'login': login.trim(), 'senha': password});
         final token = session['token'] as String;
         try {
@@ -111,7 +111,7 @@ class CarteiraModel {
               v: jsonEncode({'token': token, 'account': account.value}));
         } catch (_) {
           try {
-            await _request('POST', '/auth/sair', token: token);
+            await _request('POST', '/suporte/sair', token: token);
           } catch (_) {
             // The unused session expires on the server.
           }
@@ -132,7 +132,7 @@ class CarteiraModel {
     if (token == null) return;
     await _runSync(() async {
       _dropSession();
-      await _request('POST', '/auth/sair', token: token);
+      await _request('POST', '/suporte/sair', token: token);
     });
   }
 

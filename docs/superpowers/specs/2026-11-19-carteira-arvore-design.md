@@ -77,10 +77,11 @@ Visual: tema "loja" do design system Start X; o nome continua RustDesk.
    mostra a local com o nome da conta; 401 sai da conta; levar a carteira local
    para a conta no login (a conta vence em ID repetido). Contas são criadas no
    Start Admin (perfil `start_x`); não criar cadastro público no app.
-   - Limite: a sessão "geral" do Start X dura no máximo 12 h e cai após 2 h sem
-     uso (`Start-X/apps/api/src/servicos/sessao.ts`), então o login salvo
-     costuma expirar de um dia para o outro. Fazer durar exige decisão no
-     servidor (de preferência um token só da carteira, não a sessão inteira).
+   - Servidor (Start-X, API 0.0.55): o app entra por `POST /suporte/entrar`
+     (só perfil `start_x`) e recebe um token do portal `suporte`, que só abre
+     `/suporte/*` e cai com 30 dias sem uso (o uso renova), como o do Start
+     Estoque. A sessão do Start Admin não abre a carteira. Na VPS, o Caddy só
+     deixa sair `/suporte/*` na de teste (`api.devstartx.vps-kinghost.net`).
    - Pendente menor: a pergunta de levar a carteira se perde se o diálogo de
      login for fechado durante o login; a etiqueta do arraste aparece longe do
      cursor; a lista não rola sozinha durante o arraste.

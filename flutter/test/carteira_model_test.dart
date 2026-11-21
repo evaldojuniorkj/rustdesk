@@ -88,7 +88,7 @@ void main() {
       final m = CarteiraModel(null);
       await http.runWithClient(
           () => m.signIn('ana', 'segredo'),
-          () => MockClient((req) async => req.url.path == '/auth/entrar'
+          () => MockClient((req) async => req.url.path == '/suporte/entrar'
               ? _login
               : _json({'revisao': 1, 'dispositivos': []})));
       expect(m.account.value, 'Ana');
@@ -145,7 +145,7 @@ void main() {
       m.addPeer('B', 'Caixa B', 'Loja');
       Map<String, dynamic>? sent;
       final server = MockClient((req) async {
-        if (req.url.path == '/auth/entrar') return _login;
+        if (req.url.path == '/suporte/entrar') return _login;
         if (req.method == 'PUT') {
           sent = jsonDecode(req.body) as Map<String, dynamic>;
           return _json({'revisao': 2, 'dispositivos': sent!['dispositivos']});

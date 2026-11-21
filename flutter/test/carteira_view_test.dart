@@ -268,7 +268,7 @@ void main() {
     // The dialog opens only after the menu route has finished closing.
     await tester.pump(const Duration(milliseconds: 300));
     await tester.enterText(
-        find.widgetWithText(TextField, 'Nome da filial'), 'Filial Vazia');
+        find.widgetWithText(TextField, 'Filial 1'), 'Filial Vazia');
     await tester.tap(find.text('OK'));
     await tester.pump();
     expect(find.text('Filial Vazia'), findsOneWidget);
@@ -282,6 +282,35 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Filial Vazia'), findsNothing);
     expect(find.text('Rede Sem Máquina'), findsOneWidget);
+    await unmount(tester);
+  });
+
+  testWidgets('Nova rede já cria várias filiais, e o + acrescenta linhas',
+      (tester) async {
+    tester.view.physicalSize = const Size(1000, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pumpCarteira(tester);
+
+    await tester.tap(find.text('Nova rede'));
+    await tester.pump();
+    await tester.enterText(
+        find.widgetWithText(TextField, 'Nome da rede'), 'Rede Várias');
+    await tester.enterText(find.widgetWithText(TextField, 'Filial 1'), 'Centro');
+    await tester.tap(find.text('Adicionar filial'));
+    await tester.pump();
+    await tester.enterText(find.widgetWithText(TextField, 'Filial 2'), 'Norte');
+    await tester.tap(find.text('Adicionar filial'));
+    await tester.pump();
+    await tester.tap(find.text('OK'));
+    await tester.pump();
+
+    expect(
+        gFFI.carteiraModel.groups.where((g) => g.startsWith('Rede Várias')),
+        ['Rede Várias', 'Rede Várias / Centro', 'Rede Várias / Norte']);
+    expect(find.text('Centro'), findsOneWidget);
+    expect(find.text('Norte'), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 500));
     await unmount(tester);
   });
 

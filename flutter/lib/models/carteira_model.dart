@@ -260,7 +260,11 @@ class CarteiraModel {
   void renameGroup(String oldName, String newName) =>
       _change((data) => data.renameGroup(oldName, newName));
 
-  void addGroup(String path) => _change((data) => data.addGroup(path));
+  void addGroup(String path) => addGroups([path]);
+
+  /// One save for all: while signed in, a second save during the first is dropped.
+  void addGroups(List<String> paths) =>
+      _change((data) => paths.forEach(data.addGroup));
 
   void removeGroup(String path) => _change((data) => data.removeGroup(path));
 

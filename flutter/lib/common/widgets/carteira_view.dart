@@ -362,25 +362,65 @@ class _CarteiraBodyState extends State<_CarteiraBody> {
         ],
       );
 
+  /// A new network with its branches, or (with [parent]) more branches for it.
   void _newGroupDialog(BuildContext context, {String parent = ''}) {
-    final name = TextEditingController();
+    final network = TextEditingController();
+    final branches = [TextEditingController()];
+    // A '/' would nest a level below the branch.
+    String clean(TextEditingController c) => c.text.replaceAll('/', '-').trim();
     gFFI.dialogManager.show((setState, close, context) {
       submit() {
-        // A '/' would nest a level below the branch.
-        final text = name.text.replaceAll('/', '-').trim();
-        if (text.isEmpty) return;
-        gFFI.carteiraModel.addGroup(
-            parent.isEmpty ? text : '$parent$carteiraGroupSeparator$text');
+        final root = parent.isEmpty ? clean(network) : parent;
+        if (root.isEmpty) return;
+        final names = branches.map(clean).where((b) => b.isNotEmpty).toSet();
+        gFFI.carteiraModel.addGroups([
+          if (parent.isEmpty) root,
+          for (final b in names) '$root$carteiraGroupSeparator$b',
+        ]);
         close();
       }
 
       return CustomAlertDialog(
-        title: Text(parent.isEmpty ? 'Nova rede' : 'Nova filial em $parent'),
-        content: TextField(
-          controller: name,
-          autofocus: true,
-          decoration: InputDecoration(
-              labelText: parent.isEmpty ? 'Nome da rede' : 'Nome da filial'),
+        title: Text(parent.isEmpty ? 'Nova rede' : 'Novas filiais em $parent'),
+        content: SizedBox(
+          width: 380,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (parent.isEmpty)
+                  TextField(
+                    controller: network,
+                    autofocus: true,
+                    decoration: const InputDecoration(labelText: 'Nome da rede'),
+                  ),
+                for (final (i, branch) in branches.indexed)
+                  Row(children: [
+                    Expanded(
+                      child: TextField(
+                        controller: branch,
+                        autofocus: parent.isNotEmpty && i == 0,
+                        decoration: InputDecoration(labelText: 'Filial ${i + 1}'),
+                      ),
+                    ),
+                    if (branches.length > 1)
+                      IconButton(
+                        tooltip: 'Tirar esta filial',
+                        icon: const Icon(Icons.close, size: 18),
+                        onPressed: () => setState(() => branches.removeAt(i)),
+                      ),
+                  ]),
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: () =>
+                      setState(() => branches.add(TextEditingController())),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Adicionar filial'),
+                ),
+              ],
+            ),
+          ),
         ),
         actions: [
           dialogButton('Cancel', onPressed: close, isOutline: true),

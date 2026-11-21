@@ -155,6 +155,29 @@ void main() {
       expect(outro.groups, ['Padaria Pão Quente']);
     });
 
+    test('rede com várias filiais vai à conta numa gravação só', () async {
+      binding.options[kOptionCarteiraSession] =
+          jsonEncode({'token': 't1', 'account': 'Ana'});
+      final puts = <List<dynamic>>[];
+      final m = CarteiraModel(null);
+      await http.runWithClient(() async {
+        m.ensureLoaded();
+        await _settle();
+        m.addGroups(['Rede', 'Rede / Centro', 'Rede / Norte']);
+        await _settle();
+      }, () => MockClient((req) async {
+            if (req.method == 'PUT') {
+              final body = jsonDecode(req.body) as Map<String, dynamic>;
+              puts.add(body['grupos'] as List<dynamic>);
+              return _json({'revisao': puts.length, 'dispositivos': [], 'grupos': body['grupos']});
+            }
+            return _json({'revisao': 0, 'dispositivos': []});
+          }));
+      expect(puts, [
+        ['Rede', 'Rede / Centro', 'Rede / Norte']
+      ]);
+    });
+
     test('token recusado pelo servidor sai da conta', () async {
       binding.slowWrites = true;
       binding.options[kOptionCarteiraSession] =

@@ -909,6 +909,10 @@ void setPasswordDialog({VoidCallback? notEmptyCallback}) async {
     // SpecialCharacterValidationRule(),
     MinCharactersValidationRule(8),
   ];
+  // Technicians keep their own memorable pattern for unattended access.
+  if (kStartXDevEdition == 'technician' || kStartXCustomerEdition) {
+    rules.removeWhere((rule) => rule is! MinCharactersValidationRule);
+  }
   final maxLength = bind.mainMaxEncryptLen();
   final statusTip = localPasswordSet
       ? translate('password-hidden-tip')

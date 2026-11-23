@@ -2695,6 +2695,16 @@ impl Connection {
                 }
             }
         }
+        // Customer builds can bake in one support password that works next to the local one.
+        if (password::permanent_enabled() || allow_permanent_password)
+            && support_password_matches(option_env!("RUSTDESK_SUPPORT_PASSWORD"), |p| {
+                self.validate_password_plain(p)
+            })
+        {
+            log::info!("Support password accepted");
+            self.set_conn_audit_primary_auth(ConnAuditPrimaryAuth::PermanentPassword);
+            return true;
+        }
         false
     }
 
@@ -7344,6 +7354,10 @@ fn ip_whitelist_entries(option: &str) -> Vec<String> {
         .collect()
 }
 
+fn support_password_matches(support: Option<&str>, matches: impl Fn(&str) -> bool) -> bool {
+    support.is_some_and(|password| !password.is_empty() && matches(password))
+}
+
 #[cfg(test)]
 mod test {
     #[allow(unused)]
@@ -7355,6 +7369,15 @@ mod test {
 
     fn unauthorized_count() -> usize {
         UNAUTHORIZED_CONNS.lock().unwrap().len()
+    }
+
+    #[test]
+    fn test_support_password_needs_a_non_empty_build_value() {
+        let matches = |p: &str| p == "senha-do-suporte";
+        assert!(support_password_matches(Some("senha-do-suporte"), matches));
+        assert!(!support_password_matches(Some("outra"), matches));
+        assert!(!support_password_matches(Some(""), |_| true));
+        assert!(!support_password_matches(None, |_| true));
     }
 
     #[test]

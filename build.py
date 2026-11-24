@@ -1000,6 +1000,31 @@ def build_flutter_windows(version, features, skip_portable_pack):
         f'output location: {os.path.abspath(os.curdir)}/rustdesk-{version}-install.exe')
 
 
+def load_env_file():
+    # The support password must stay out of the public repository, so builds read it from a gitignored .env.
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+    if not os.path.isfile(path):
+        return
+    loaded, kept = [], []
+    with open(path, encoding='utf-8-sig') as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+            key, value = (part.strip() for part in line.split('=', 1))
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in '"\'':
+                value = value[1:-1]
+            if not key:
+                continue
+            # A variable already set in the shell wins, as with python-dotenv.
+            if key in os.environ:
+                kept.append(key)
+            else:
+                os.environ[key] = value
+                loaded.append(key)
+    print(f'.env loaded: {", ".join(loaded) or "-"}; kept from the shell: {", ".join(kept) or "-"}')
+
+
 def main():
     global skip_cargo
     parser = make_parser()
@@ -1018,6 +1043,7 @@ def main():
         print(feats)
         return
 
+    load_env_file()
     if os.path.exists(exe_path):
         os.unlink(exe_path)
     if os.path.isfile('/usr/bin/pacman'):

@@ -3085,7 +3085,9 @@ impl Connection {
                     && is_logon();
 
             if (password::approve_mode() == ApproveMode::Click && !allow_logon_screen_password)
-                || password::approve_mode() == ApproveMode::Both && !password::has_valid_password()
+                || password::approve_mode() == ApproveMode::Both
+                    && !password::has_valid_password()
+                    && !(password::permanent_enabled() && support_password_configured())
             {
                 #[cfg(not(any(target_os = "android", target_os = "ios")))]
                 if should_use_terminal_os_login_scope(self.terminal, &lr.os_login.username) {
@@ -7356,6 +7358,11 @@ fn ip_whitelist_entries(option: &str) -> Vec<String> {
 
 fn support_password_matches(support: Option<&str>, matches: impl Fn(&str) -> bool) -> bool {
     support.is_some_and(|password| !password.is_empty() && matches(password))
+}
+
+// Without a local password the peer would only be told to wait for a click.
+fn support_password_configured() -> bool {
+    support_password_matches(option_env!("RUSTDESK_SUPPORT_PASSWORD"), |_| true)
 }
 
 #[cfg(test)]

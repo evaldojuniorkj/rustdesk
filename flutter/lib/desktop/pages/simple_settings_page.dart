@@ -35,6 +35,7 @@ class _SimpleSettingsViewState extends State<SimpleSettingsView> {
   // (or the unlock PIN) before access options change.
   var _locked = bind.mainIsInstalled();
   var _unattended = false;
+  var _support = false;
   late final _langs = bind.mainGetLangs();
   late final _version = bind.mainGetVersion();
 
@@ -42,12 +43,18 @@ class _SimpleSettingsViewState extends State<SimpleSettingsView> {
   void initState() {
     super.initState();
     _loadUnattended();
+    _loadSupport();
   }
 
   Future<void> _loadUnattended() async {
     final set =
         await bind.mainGetCommon(key: 'permanent-password-set') == 'true';
     if (mounted) setState(() => _unattended = set);
+  }
+
+  Future<void> _loadSupport() async {
+    final set = await bind.mainGetCommon(key: 'support-password-set') == 'true';
+    if (mounted) setState(() => _support = set);
   }
 
   @override
@@ -227,6 +234,8 @@ class _SimpleSettingsViewState extends State<SimpleSettingsView> {
               'Sem senha, como no AnyDesk: quem pede acesso espera você clicar em Aceitar.'),
           trailing: _pill('Sempre ligado'),
         ),
+        if (_support) ..._supportUnattended(canSetPassword),
+        if (!_support)
         SwitchListTile(
           title: const Text('Acesso não supervisionado'),
           subtitle: const Text(
@@ -234,7 +243,7 @@ class _SimpleSettingsViewState extends State<SimpleSettingsView> {
           value: _unattended,
           onChanged: canSetPassword ? (_) => _toggleUnattended() : null,
         ),
-        if (_unattended)
+        if (!_support && _unattended)
           ListTile(
             title: const Text('Senha do acesso não supervisionado'),
             subtitle: const Text(
@@ -268,6 +277,70 @@ class _SimpleSettingsViewState extends State<SimpleSettingsView> {
             fake: fake),
       ]),
     ];
+  }
+
+  /// Builds with the support password are unattended from install; turning it
+  /// off only switches access to click-to-accept, keeping both passwords.
+  List<Widget> _supportUnattended(bool canSetPassword) {
+    final on = bind.mainGetOptionSync(key: kOptionApproveMode) != 'click';
+    return [
+      SwitchListTile(
+        title: const Text('Acesso não supervisionado'),
+        subtitle: const Text(
+            'O técnico da Start X entra com a senha do suporte, sem esperar você aceitar.'),
+        value: on,
+        onChanged: canSetPassword
+            ? (v) async {
+                await bind.mainSetOption(
+                    key: kOptionApproveMode, value: v ? '' : 'click');
+                if (mounted) setState(() {});
+              }
+            : null,
+      ),
+      if (on)
+        ListTile(
+          title: const Text('Senha própria (opcional)'),
+          subtitle:
+              const Text('Uma segunda senha, que funciona junto com a do suporte.'),
+          trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+            if (_unattended) ...[_pill('Cadastrada'), const SizedBox(width: 8)],
+            OutlinedButton.icon(
+              onPressed: canSetPassword
+                  ? () => setPasswordDialog(notEmptyCallback: _loadUnattended)
+                  : null,
+              icon: const Icon(Icons.lock, size: 16),
+              label: Text(_unattended ? 'Trocar senha' : 'Criar senha'),
+            ),
+            if (_unattended)
+              TextButton(
+                onPressed: canSetPassword ? _removeOwnPassword : null,
+                child: const Text('Remover'),
+              ),
+          ]),
+        ),
+    ];
+  }
+
+  void _removeOwnPassword() {
+    gFFI.dialogManager.show((setState, close, context) {
+      submit() async {
+        final ok = await bind.mainSetPermanentPasswordWithResult(password: '');
+        close();
+        if (!ok) showToast(translate('Failed'));
+        _loadUnattended();
+      }
+
+      return CustomAlertDialog(
+        title: const Text('Remover a senha própria?'),
+        content: const Text('A senha do suporte continua funcionando.'),
+        actions: [
+          dialogButton('Cancelar', onPressed: close, isOutline: true),
+          dialogButton('Remover', onPressed: submit),
+        ],
+        onSubmit: submit,
+        onCancel: close,
+      );
+    });
   }
 
   /// Unattended access is the permanent password: set it, or clear it.

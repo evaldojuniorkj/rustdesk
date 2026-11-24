@@ -137,13 +137,14 @@ void main() {
     await tester.pump(const Duration(seconds: 4));
   });
 
-  testWidgets('com senha cadastrada o acesso não supervisionado oferece Desligar',
+  testWidgets('o acesso não supervisionado fica só nas Configurações',
       (tester) async {
     binding.permanentPasswordSet = true;
     addTearDown(() => binding.permanentPasswordSet = false);
     await pumpClient(tester);
     await tester.pump();
-    expect(find.text('Desligar…'), findsOneWidget);
-    expect(find.text('Configurar senha…'), findsNothing);
+    expect(find.text('Acesso não supervisionado'), findsNothing);
+    expect(find.byTooltip('Acesso não supervisionado'), findsNothing);
+    expect(find.text('Desligar…'), findsNothing);
   });
 }

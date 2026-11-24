@@ -33,8 +33,18 @@ The support team installs the customer edition on its customers' computers and w
 - **The helper.** `support_password_matches(Option<&str>, impl Fn(&str) -> bool)` holds the rule: no variable or an empty value never matches. It is unit-tested.
 - **The builds.** Set the variable only when building the customer edition. Cargo rebuilds when its value changes.
 
+## Fix of 2026-11-24: unattended on from install
+
+- **The bug.** A customer with no password of their own was never asked for one. Before any password check, the login sees approve mode "both" with no valid local password and tells the peer to wait for a click (`LOGIN_MSG_NO_PASSWORD_ACCESS`). That gate now also passes when a support password is baked in and permanent passwords are enabled.
+- **The UI.**
+  - The lock next to "Seu endereço" and the unattended tile left the customer home; the option lives only in Configurações → Segurança.
+  - With a support password (`mainGetCommon("support-password-set")`), the switch reads approve mode. It is on unless the mode is `click`, so it is on from install. Turning it off stores `click` and keeps both passwords. Below it, the customer may create, change or remove a password of their own.
+  - Builds without a support password keep the old switch, which sets or clears the permanent password.
+- **Startup preset.** The startup preset no longer forces the approve mode, which would undo the switch on every launch. Its default, empty, is the value the preset used to force.
+- **Admin rights.** On Windows the installed app runs as a service, so the technician can operate elevated windows (UAC). Changing Segurança on an installed app still asks for admin rights or the unlock PIN.
+
 ## Known limits
 
 - Anyone holding the installer can extract the password. A leak opens every customer, so a long password is advised.
-- The customer screen still says unattended access is off when the customer has no password of their own. The connection window still appears on every connection.
+- The connection window still appears on every connection; it closes by itself once the password is accepted.
 - Customers who already installed need the new installer.

@@ -2806,6 +2806,10 @@ pub fn main_get_common(key: String) -> String {
         return ui_interface::is_permanent_password_set().to_string();
     } else if key == "local-permanent-password-set" {
         return ui_interface::is_local_permanent_password_set().to_string();
+    } else if key == "support-password-set" {
+        return option_env!("RUSTDESK_SUPPORT_PASSWORD")
+            .is_some_and(|p| !p.is_empty())
+            .to_string();
     } else {
         if key.starts_with("download-data-") {
             let id = key.replace("download-data-", "");

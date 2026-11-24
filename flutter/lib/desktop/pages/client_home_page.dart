@@ -49,24 +49,11 @@ class _ClientHomeViewState extends State<ClientHomeView> {
   // mouse, so an accepted session cannot set an unattended password.
   final _block = false.obs;
   var _tab = 0;
-  var _unattended = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUnattended();
-  }
 
   @override
   void dispose() {
     _remoteId.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadUnattended() async {
-    final set =
-        await bind.mainGetCommon(key: 'permanent-password-set') == 'true';
-    if (mounted) setState(() => _unattended = set);
   }
 
   void _connect({bool files = false}) {
@@ -81,34 +68,6 @@ class _ClientHomeViewState extends State<ClientHomeView> {
     Clipboard.setData(ClipboardData(
         text: 'Para me dar suporte pelo RustDesk, use o endereço $id.'));
     showToast('Convite copiado. Cole no WhatsApp ou no e-mail do técnico.');
-  }
-
-  /// Unattended access is the permanent password: set it, or clear it.
-  void _configureUnattended() {
-    if (!_unattended) {
-      setPasswordDialog(notEmptyCallback: _loadUnattended);
-      return;
-    }
-    gFFI.dialogManager.show((setState, close, context) {
-      submit() async {
-        final ok = await bind.mainSetPermanentPasswordWithResult(password: '');
-        close();
-        if (!ok) showToast(translate('Failed'));
-        _loadUnattended();
-      }
-
-      return CustomAlertDialog(
-        title: const Text('Desligar o acesso não supervisionado?'),
-        content: const Text(
-            'A senha é apagada e cada acesso volta a esperar você clicar em Aceitar.'),
-        actions: [
-          dialogButton('Cancelar', onPressed: close, isOutline: true),
-          dialogButton('Desligar', onPressed: submit),
-        ],
-        onSubmit: submit,
-        onCancel: close,
-      );
-    });
   }
 
   void _askMacPermissions() {
@@ -242,11 +201,6 @@ class _ClientHomeViewState extends State<ClientHomeView> {
               'Este é o endereço deste computador no RustDesk. Passe ele para o técnico.',
           child: Icon(Icons.info_outline, size: 20, color: muted),
         ),
-        IconButton(
-          tooltip: 'Acesso não supervisionado',
-          icon: Icon(_unattended ? Icons.lock : Icons.lock_open, size: 20),
-          onPressed: _configureUnattended,
-        ),
         OutlinedButton.icon(
           onPressed: _invite,
           icon: const Icon(Icons.send, size: 16),
@@ -267,15 +221,6 @@ class _ClientHomeViewState extends State<ClientHomeView> {
           await rustDeskWinManager.closeAllSubWindows();
           bind.mainGotoInstall();
         }),
-      _tile(
-          MyTheme.brandMid,
-          Colors.white,
-          'Acesso não supervisionado',
-          _unattended
-              ? 'Ligado. Quem tiver a senha entra sem você aceitar.'
-              : 'Para computadores sem ninguém na frente, como servidores.',
-          action: _unattended ? 'Desligar…' : 'Configurar senha…',
-          onTap: _configureUnattended),
       if (isMacOS)
         _tile(Colors.grey.shade300, Colors.black87, 'Permissões do macOS',
             'Libere Gravar a tela e Acessibilidade para o técnico ver e controlar este computador.',

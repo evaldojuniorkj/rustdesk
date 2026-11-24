@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 class _Binding extends Fake implements RustdeskImpl {
   bool permanentPasswordSet = false;
+  bool supportPasswordSet = false;
   final options = <String, String>{
     'custom-rendezvous-server': 'id.exemplo.com.br:21116',
     'relay-server': 'relay.exemplo.com.br:21117',
@@ -14,7 +15,11 @@ class _Binding extends Fake implements RustdeskImpl {
 
   @override
   Future<String> mainGetCommon({required String key, dynamic hint}) async =>
-      key == 'permanent-password-set' ? '$permanentPasswordSet' : '';
+      switch (key) {
+        'permanent-password-set' => '$permanentPasswordSet',
+        'support-password-set' => '$supportPasswordSet',
+        _ => '',
+      };
 
   @override
   String mainGetOptionSync({required String key, dynamic hint}) =>
@@ -110,6 +115,24 @@ void main() {
     await openTab(tester, 'Segurança');
     expect(switchValue(tester, 'Acesso não supervisionado'), isTrue);
     expect(find.text('Cadastrada'), findsOneWidget);
+  });
+
+  testWidgets('com a senha do suporte o acesso não supervisionado já vem ligado',
+      (tester) async {
+    binding.supportPasswordSet = true;
+    addTearDown(() {
+      binding.supportPasswordSet = false;
+      binding.options.remove('approve-mode');
+    });
+    await openTab(tester, 'Segurança');
+    expect(switchValue(tester, 'Acesso não supervisionado'), isTrue);
+    expect(find.text('Criar senha'), findsOneWidget);
+
+    await tester.tap(find.text('Acesso não supervisionado'));
+    await tester.pumpAndSettle();
+    expect(binding.options['approve-mode'], 'click');
+    expect(switchValue(tester, 'Acesso não supervisionado'), isFalse);
+    expect(find.text('Criar senha'), findsNothing);
   });
 
   testWidgets('desligar uma permissão grava a opção do RustDesk',

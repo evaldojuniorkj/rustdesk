@@ -140,8 +140,8 @@ void runMainApp(bool startService) async {
       'key': 'NiI80WFyygOjuC7Sfmh9+NlUrg3WqT9dgnvda93xIQQ=',
       // As in AnyDesk: no one-time password. Access is accepted by click, or
       // with the permanent password of unattended access when one is set.
+      // The approve mode is left alone: turning unattended access off stores 'click'.
       kOptionVerificationMethod: 'use-permanent-password',
-      kOptionApproveMode: '',
     };
     final options = Map<String, dynamic>.from(
         jsonDecode(bind.mainGetOptionsSync()) as Map);

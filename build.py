@@ -973,7 +973,10 @@ def build_flutter_windows(version, features, skip_portable_pack):
             print("cargo build failed, please check rust source code.")
             exit(-1)
     os.chdir('flutter')
-    system2('flutter build windows --release')
+    # The Start X editions are picked at Dart compile time.
+    edition = os.environ.get('START_X_DEV_EDITION')
+    edition_define = f' --dart-define=START_X_DEV_EDITION={edition}' if edition else ''
+    system2('flutter build windows --release' + edition_define)
     os.chdir('..')
     shutil.copy2('target/release/deps/dylib_virtual_display.dll',
                  flutter_build_dir_2)
